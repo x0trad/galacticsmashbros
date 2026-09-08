@@ -24,6 +24,24 @@ export default function Home(){
  };
  const releaseSmash=(e:React.PointerEvent)=>{if(smashPointer.current===e.pointerId){smashPointer.current=null;keys.current.delete(' ')}};
  const smashEvents={onPointerDown:(e:React.PointerEvent<HTMLButtonElement>)=>{if(e.button!==0||smashPointer.current!==null)return;e.preventDefault();smashPointer.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);keys.current.add(' ')},onPointerUp:releaseSmash,onPointerCancel:releaseSmash,onLostPointerCapture:releaseSmash};
+ useEffect(()=>{
+  if(mode!=='playing')return;
+  const root=document.documentElement,body=document.body;
+  const scrollX=window.scrollX,scrollY=window.scrollY;
+  const saved={position:body.style.position,top:body.style.top,left:body.style.left,width:body.style.width};
+  root.classList.add('game-active');
+  Object.assign(body.style,{position:'fixed',top:`-${scrollY}px`,left:`-${scrollX}px`,width:'100%'});
+  const stopScroll=(e:Event)=>{if(e.cancelable)e.preventDefault()};
+  document.addEventListener('touchmove',stopScroll,{passive:false});
+  document.addEventListener('wheel',stopScroll,{passive:false});
+  return()=>{
+   document.removeEventListener('touchmove',stopScroll);
+   document.removeEventListener('wheel',stopScroll);
+   root.classList.remove('game-active');
+   Object.assign(body.style,saved);
+   window.scrollTo({left:scrollX,top:scrollY,behavior:'instant'});
+  };
+ },[mode]);
  return <main><header><a className="brand" href="/" aria-label="Galactic Dog Smash home">GD<span>✳</span></a><span className="eyebrow">GALACTIC DOG SMASH</span><span className="version">ARCADE / 001</span></header><section className="game-shell" aria-label="Galactic Dog Smash game"><div className="topbar"><span><i/> ORBITAL ARENA</span><button className="sound" onClick={()=>{silent.current=!muted;setMuted(!muted)}} aria-pressed={muted}>{muted?'SOUND OFF':'SOUND ON'} ♪</button></div><div className="stage">
  {mode==='lobby'?<div className="lobby"><p className="eyebrow lime">GOOD DOGS. BAD ATTITUDE.</p><h1>GALACTIC<br/>DOG <em>SMASH</em></h1><p className="intro">One space station. An endless rogue pack.<br/>How long can you hold your ground?</p><RadioGroup aria-label="Choose your dog" value={dog} onValueChange={v=>setDog(v as Dog)} className="dogs">{(['green','grey','purple'] as Dog[]).map(c=><label key={c} className={dog===c?'dog selected':'dog'}><img src={`/sprites/${c}-idle-down-1.png`} alt={`${c} space dog`}/><span><RadioGroupItem value={c} aria-label={`${c} dog`}/>{c.toUpperCase()}</span></label>)}</RadioGroup><button className="launch" onClick={start} disabled={!ready}>{error?'SPRITES COULD NOT LOAD':ready?'ENTER THE ARENA':'LOADING THE PACK…'} <span>↗</span></button><p className="small">{error?'Reload the page to try again.':best?`PERSONAL BEST · ${best.toLocaleString()}`:'Choose your dog. Make some space.'}</p></div>:<><canvas ref={canvas} width={W} height={H} aria-label="Arena. Use WASD or arrow keys to move, hold Space to punch. Avoid enemy dogs and collect green health packs."/><div className="hud"><div>HEALTH {hud.hp}<div className="health" role="meter" aria-label="Health" aria-valuenow={hud.hp} aria-valuemin={0} aria-valuemax={100}><div style={{width:`${hud.hp}%`}}/></div></div><div>WAVE <b>{String(hud.wave).padStart(2,'0')}</b></div><div>SCORE <b>{hud.score.toLocaleString()}</b></div><button onClick={pause} aria-label={mode==='paused'?'Resume game':'Pause game'}>{mode==='paused'?'▶':'Ⅱ'}</button></div>{mode==='playing'&&<div className="touch"><div className="stick-wrap"><div className="joystick" role="group" aria-label="Movement joystick. Drag in any direction; drag farther to move faster. Release to stop." {...stickEvents}><span className="stick-cross" aria-hidden="true">＋</span><span className="stick-knob" ref={stickKnob} aria-hidden="true"/></div><span className="stick-hint">DRAG TO MOVE</span></div><button className="smash" {...smashEvents}>SMASH</button></div>}{(mode==='paused'||mode==='over')&&<div className="overlay"><p className="eyebrow lime">{mode==='paused'?'TAKE A BREATHER':'END OF TRANSMISSION'}</p><h2>{mode==='paused'?'PACK ON PAUSE.':'DOG GONE.'}</h2><p>{mode==='paused'?'Your arena will be right here.':`Wave ${hud.wave} · ${game.current?.kills||0} dogs smashed · ${hud.score.toLocaleString()} points`}</p>{mode==='over'&&<p className="small">PERSONAL BEST · {best.toLocaleString()}</p>}<button className="launch" onClick={mode==='paused'?pause:start}>{mode==='paused'?'BACK TO THE FIGHT':'ONE MORE ROUND'} ↗</button><button className="secondary" onClick={()=>change('lobby')}>Choose another dog</button></div>}</>}
  {mode==='lobby'&&<span className="corner">STATION // K-9</span>}</div><footer><span><kbd>W A S D</kbd> MOVE</span><span><kbd>SPACE</kbd> HOLD TO PUNCH</span><span><kbd>ESC</kbd> PAUSE</span></footer></section><div className="under"><span>SURVIVAL MODE · ENDLESS WAVES</span><span>BUILT FOR THE PACK.</span></div></main>
