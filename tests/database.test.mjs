@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import {readFileSync,readdirSync} from 'node:fs';
 import ts from 'typescript';
 import {Miniflare} from 'miniflare';
+import {generatePrivateKey,privateKeyToAccount} from 'viem/accounts';
 const compile=(p)=>ts.transpileModule(readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
 const url=(s)=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
-const store=await import(url(compile('db/store.ts').replace("'../app/inventory'",JSON.stringify(url(compile('app/inventory.ts'))))));
+const storeUrl=url(compile('db/store.ts').replace("'../app/inventory'",JSON.stringify(url(compile('app/inventory.ts')))));
+const store=await import(storeUrl);
+const wallet=await import(url(compile('db/wallet.ts').replace("'viem'",JSON.stringify(import.meta.resolve('viem'))).replace("'./store'",JSON.stringify(storeUrl))));
 const mf=new Miniflare({modules:true,script:'export default {fetch(){return new Response("test")}}',d1Databases:['DB'],compatibilityDate:'2026-05-15'});
 try{
  const db=await mf.getD1Database('DB');
@@ -24,5 +27,22 @@ try{
  const old=await store.startRun(db,'bob');await store.startRun(db,'bob');assert.equal(await store.finishRun(db,'bob',{runId:old,kills:1,wave:1,score:110}),0);
  // A failed transaction must not deduct or grant anything.
  const before=await store.profile(db,'bob');await assert.rejects(db.batch([db.prepare('UPDATE players SET credits=-1 WHERE id=?').bind('bob'),db.prepare("INSERT INTO ownership VALUES ('bob','void')")]));assert.deepEqual(await store.profile(db,'bob'),before);
+ const owner=privateKeyToAccount(generatePrivateKey()),impostor=privateKeyToAccount(generatePrivateKey());
+ let c=await wallet.challenge(db,'alice',owner.address,'https://game.example');
+ await assert.rejects(wallet.verifyWallet(db,'alice',c.nonce,await impostor.signMessage({message:c.message})));
+ const signature=await owner.signMessage({message:c.message});
+ await assert.rejects(wallet.verifyWallet(db,'bob',c.nonce,signature));
+ await wallet.verifyWallet(db,'alice',c.nonce,signature);
+ assert.equal((await wallet.linkedWallet(db,'alice')).address,owner.address.toLowerCase());
+ await assert.rejects(wallet.verifyWallet(db,'alice',c.nonce,signature));
+ c=await wallet.challenge(db,'bob',owner.address,'https://game.example');
+ await assert.rejects(wallet.verifyWallet(db,'bob',c.nonce,await owner.signMessage({message:c.message})),/another game account/);
+ c=await wallet.challenge(db,'alice',impostor.address,'https://game.example');
+ await db.prepare('UPDATE wallet_challenges SET expires_at=0 WHERE player_id=?').bind('alice').run();
+ await assert.rejects(wallet.verifyWallet(db,'alice',c.nonce,await impostor.signMessage({message:c.message})));
+ c=await wallet.challenge(db,'alice',impostor.address,'https://game.example');
+ await wallet.unlinkWallet(db,'alice');assert.equal(await wallet.linkedWallet(db,'alice'),null);
+ await assert.rejects(wallet.verifyWallet(db,'alice',c.nonce,await impostor.signMessage({message:c.message})));
+ console.log('PASS: wallet signatures, wrong signer/account, replay, expiration, unique ownership, unlink and outstanding challenge invalidation.');
  console.log('PASS: migrations, account isolation, concurrent purchases, balance/ownership atomicity, equip authorization, replay-safe run crediting, invalid claims, abandoned sessions, rollback.');
 }finally{await mf.dispose()}
