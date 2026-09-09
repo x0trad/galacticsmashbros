@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+const js=ts.transpileModule(readFileSync('app/inventory.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const {freshInventory,parseInventory,purchase,equip,runCredits}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+let v=freshInventory();assert.equal(v.credits,300);
+assert.equal(purchase(v,'void'),v);assert.equal(purchase(v,'fake'),v);
+v=purchase(v,'ion');assert.equal(v.credits,100);assert(v.owned.includes('ion'));assert.equal(v.equipped,'standard');
+assert.equal(purchase(v,'ion'),v);assert.equal(equip(v,'void'),v);
+v=equip(v,'ion');assert.equal(v.equipped,'ion');
+assert.deepEqual(parseInventory(JSON.stringify(v)),v);
+assert.throws(()=>parseInventory('{'));assert.throws(()=>parseInventory(JSON.stringify({...v,credits:-5})));
+assert.equal(parseInventory(JSON.stringify({...v,equipped:'void'})).equipped,'standard');
+assert.equal(runCredits(6,2),55);assert.equal(runCredits(0,0),0);
+console.log('PASS: affordability, duplicate purchases, ownership checks, equip, save round-trip, malformed saves and run reward calculation.');
