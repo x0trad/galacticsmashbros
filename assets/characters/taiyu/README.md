@@ -16,4 +16,6 @@ Idle and walk animations cover down, left, right and up. Punch covers left and r
 
 After editing in MCP, copy `/Users/kaylaru/sprites/taiyu.sprite.json` here and run `node assets/characters/taiyu/export.mjs` from the game project.
 
+Punch frames use a wide stepping stance: the rear foot lifts during extension, both feet plant for impact, and the front foot lifts during recovery. This adds leg movement to the four-frame punch cycle.
+
 These assets are ready for game integration. The character selector has not been modified by this asset-generation task.

@@ -11,13 +11,13 @@ function board(){const g=Array.from({length:64},()=>Array(64).fill('.'));
 function pose(direction,action,f){const {g,r,l,p}=board(),side=direction==='right'||direction==='left',rear=direction==='up',walk=action==='walk',punch=action==='punch';
  const bob=walk?(f%2?-1:0):punch?([0,0,-1,0][f]):([0,-1,0,0][f]);
  const twist=punch?[-1,0,1,0][f]:0;
- const steps=walk?[[-3,3],[0,1],[3,-3],[-1,0]][f]:[0,0];
+ const steps=walk?[[-3,3],[0,1],[3,-3],[-1,0]][f]:punch?[[-3,3],[-2,4],[-4,4],[-3,2]][f]:[0,0];
  // Feet keep one common floor; passing frames deliberately lift alternate feet.
  function leg(x,step,lift,far){const y=58-lift;l(x,45,x+step,y-2,8,0);l(x,46,x+step,y-3,5,far?1:2);l(x-1,48,x+step-1,y-4,1,18);
   r(x+step-3,y-8,6,4,7);r(x+step-2,y-8,4,3,9);r(x+step-1,y-8,2,1,11);
   const bx=x+step-4;r(bx,y-3,9,6,0);r(bx+1,y-3,7,4,2);r(bx+2,y-3,5,1,9);r(bx+1,y+1,8,1,3);r(bx+1,y,3,1,4);
  }
- leg(side?29:27,steps[0],walk&&f===1?3:0,true);leg(side?35:37,steps[1],walk&&f===3?3:0,false);
+ leg(side?29:27,steps[0],(walk||punch)&&f===1?3:0,true);leg(side?35:37,steps[1],(walk||punch)&&f===3?3:0,false);
  function arm(x,y,ex,ey,far=false,fist=false){l(x,y,ex,ey,7,0);l(x,y,ex,ey-1,5,far?1:2);l(x-1,y,ex-1,ey-2,2,8);l(x+1,y+1,ex+1,ey-3,1,19);
   r(ex-4,ey-2,fist?9:8,7,0);r(ex-3,ey-1,fist?7:6,5,2);r(ex-2,ey-1,fist?5:4,2,4);r(ex-2,ey+2,1,1,3);r(ex,ey+2,1,1,3);r(ex+2,ey+2,1,1,3);
  }
