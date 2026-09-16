@@ -1,7 +1,9 @@
 import type { Movement } from './joystick';
 export const W=1100,H=660;
-export type Dog='green'|'grey'|'purple'|'smg';
-export const characters:Dog[]=['green','grey','purple','smg'];
+export type Dog='green'|'grey'|'purple'|'smg'|'taiyu'|'horned-core';
+export const characters:Dog[]=['green','grey','purple','smg','taiyu','horned-core'];
+export const characterNames:Record<Dog,string>={green:'GREEN',grey:'GREY',purple:'PURPLE',smg:'SMG',taiyu:'TAIYU','horned-core':'HORNED CORE'};
+export const characterLabel=(c:Dog)=>c==='smg'?'SMG monkey':c==='taiyu'?'Taiyu robot':c==='horned-core'?'Horned Core':`${c} space dog`;
 export type Actor={x:number;y:number;dir:string;color:Dog;hp:number;max:number;vx:number;vy:number;hurt:number;attack:number;moving:boolean;spawn:number;shooter?:boolean;fireTimer?:number;aimTimer?:number;aimX?:number;aimY?:number};
 export type Boost='fury'|'haste'|'shield';
 export type Particle={x:number;y:number;vx:number;vy:number;life:number;color:string};

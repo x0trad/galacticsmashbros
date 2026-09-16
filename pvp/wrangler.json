@@ -1,0 +1,9 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "galactic-dog-smash-pvp",
+  "main": "worker.ts",
+  "compatibility_date": "2026-05-15",
+  "durable_objects": {"bindings": [{"name": "ROOMS", "class_name": "MatchRoom"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["MatchRoom"]}],
+  "vars": {"ALLOWED_ORIGINS": "https://galactic-dog-smash.teamsoftware8055.chatgpt.site,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000"}
+}

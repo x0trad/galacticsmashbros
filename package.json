@@ -7,6 +7,9 @@
   },
   "scripts": {
     "dev": "vinext dev",
+    "pvp:dev": "WRANGLER_WRITE_LOGS=false wrangler dev --config pvp/wrangler.json --port 8788",
+    "pvp:deploy": "WRANGLER_WRITE_LOGS=false wrangler deploy --config pvp/wrangler.json",
+    "test:pvp": "node tests/pvp.test.mjs",
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
