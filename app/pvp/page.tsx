@@ -316,7 +316,7 @@ export default function PvP() {
   return (
     <main className={`pvp ${active ? 'pvp-active' : ''}`}>
       <header>
-        <a href="/">← GALACTIC DOG SMASH</a>
+        <a href="/">← GALACTIC SMASH BROS</a>
         <span>PRIVATE 1V1</span>
       </header>
       {error && (

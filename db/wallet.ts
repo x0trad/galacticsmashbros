@@ -5,7 +5,7 @@ export async function linkedWallet(db:D1Database,user:string){return db.prepare(
 export async function challenge(db:D1Database,user:string,address:unknown,origin:string){
  if(typeof address!=='string'||!isAddress(address))throw new RequestError('Invalid wallet address');
  const normalized=address.toLowerCase(),nonce=crypto.randomUUID().replaceAll('-',''),now=Date.now(),expiresAt=now+300000;
- const message=`${new URL(origin).host} wants you to verify this wallet for GALACTIC DOG SMASH:\n${normalized}\n\nLink this wallet to your signed-in game profile. No payment, token approval, or transaction is requested.\n\nURI: ${origin}\nVersion: 1\nChain ID: ${CHAIN_ID}\nNonce: ${nonce}\nIssued At: ${new Date(now).toISOString()}\nExpiration Time: ${new Date(expiresAt).toISOString()}`;
+ const message=`${new URL(origin).host} wants you to verify this wallet for GALACTIC SMASH BROS:\n${normalized}\n\nLink this wallet to your signed-in game profile. No payment, token approval, or transaction is requested.\n\nURI: ${origin}\nVersion: 1\nChain ID: ${CHAIN_ID}\nNonce: ${nonce}\nIssued At: ${new Date(now).toISOString()}\nExpiration Time: ${new Date(expiresAt).toISOString()}`;
  await db.prepare('INSERT INTO wallet_challenges (player_id,nonce,address,message,expires_at,consumed) VALUES (?,?,?,?,?,0) ON CONFLICT(player_id) DO UPDATE SET nonce=excluded.nonce,address=excluded.address,message=excluded.message,expires_at=excluded.expires_at,consumed=0').bind(user,nonce,normalized,message,expiresAt).run();
  return {nonce,message,expiresAt};
 }
