@@ -4,7 +4,6 @@ export const roster = [
   'purple',
   'smg',
   'taiyu',
-  'horned-core',
 ] as const;
 export type Character = (typeof roster)[number];
 export type Direction = 'left' | 'right' | 'up' | 'down';
