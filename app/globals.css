@@ -74,3 +74,14 @@ html.game-active,html.game-active body{overflow:hidden;overscroll-behavior:none}
 @media(max-width:650px),(any-pointer:coarse){.power-card .power-sprite{--sprite-size:36px}}
 @media(max-width:450px){.loadout-art{width:48px;height:48px}.loadout-slot .power-sprite{--sprite-size:48px}}
 @media(prefers-reduced-motion:reduce){.power-sprite{animation:none}}
+
+/* Comfortable gaps around shop actions, including the button's offset shadow. */
+.preview-buttons{gap:16px;flex-wrap:wrap;margin:12px 0 24px}
+.preview-panel .launch{margin:20px 0 16px}
+.preview-panel .garage-message{margin-top:8px}
+.kit-list{gap:16px}
+/* Pause phone play instead of shrinking the arena into landscape's leftover height. */
+.rotate-prompt{position:fixed;inset:0;z-index:100;background:#101c24;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px max(24px,env(safe-area-inset-right)) 24px max(24px,env(safe-area-inset-left));overflow:auto}
+.rotate-prompt h2{font-size:clamp(24px,5vw,36px);font-weight:900;color:#ccff59;margin:0}
+.rotate-prompt p{max-width:440px;margin:0;color:#b6c8ce;line-height:1.5}
+.rotate-prompt .small{font-size:14px;letter-spacing:0}
