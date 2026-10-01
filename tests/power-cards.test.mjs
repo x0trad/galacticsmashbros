@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import {readFileSync} from 'node:fs';
+const js=ts.transpileModule(readFileSync('app/arena.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const {Arena,powerCards}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const create=(cards)=>{const g=new Arena('green',()=>{},cards);g.between=100;return g};
+const advance=(g,seconds)=>{for(let i=0;i<Math.round(seconds/.04);i++)g.update(.04,new Set())};
+for(const id of ['fury','haste','shield']){
+ const g=create([id,'super','barricade']);
+ assert(g.activateCard(0));assert.equal(g.boosts[id],powerCards[id].duration);
+ assert(!g.activateCard(0));advance(g,powerCards[id].duration+.08);
+ assert.equal(g.boosts[id],0);assert(!g.activateCard(0));
+ advance(g,powerCards[id].cooldown);assert(g.activateCard(0));
+}
+const loadout=['shield','fury','haste'];const g=create(loadout);loadout[0]='super';
+assert.deepEqual(g.loadout,['shield','fury','haste']);assert(!g.superSmash());assert(!g.deployBarricade());assert(!g.activateCard(3));
+const keys=new Set(['2']);g.update(.04,keys);assert(g.boosts.fury>0);assert.equal(g.boosts.shield,0);assert(!keys.has('2'));
+const victim=()=>({...g.player,x:g.player.x+30,y:g.player.y,hp:1,max:1,color:'purple'});
+for(let i=0;i<20;i++)g.hit(victim(),1,0);
+assert.equal(g.pickups.length,4);assert(g.pickups.every(p=>!('kind' in p)));
+assert.equal(g.boosts.shield,0);assert.equal(g.boosts.haste,0);
+g.player.hp=50;g.pickups=[{x:g.player.x,y:g.player.y,life:10}];g.update(.04,new Set());assert.equal(g.player.hp,75);assert.equal(g.boosts.shield,0);
+const shield=create(['shield','fury','haste']);shield.activateCard(0);shield.damagePlayer(14);assert.equal(shield.player.hp,100);advance(shield,4.08);shield.damagePlayer(14);assert.equal(shield.player.hp,86);
+const haste=create(['haste','fury','shield']);const normal=create();haste.activateCard(0);const x=haste.player.x;haste.update(.1,new Set(['d']));normal.update(.1,new Set(['d']));assert(haste.player.x-x>normal.player.x-x);haste.punch();assert.equal(haste.cooldown,.2);
+const fury=create(['fury','shield','haste']);fury.activateCard(0);fury.enemies=[{...fury.player,y:fury.player.y+50,hp:4,max:4,color:'purple'}];fury.punch();assert.equal(fury.enemies[0].hp,2);
+const smash=create(['super','fury','haste']);assert(smash.activateCard(0));const cooldown=smash.superCooldown;for(let i=0;i<10;i++)smash.hit({...smash.player,hp:1},1,0);assert.equal(smash.superCooldown,cooldown);assert(!smash.activateCard(0));
+const legacy=create(['super','fury','haste']);legacy.update(.04,new Set(['e']));assert.equal(legacy.shockwave,0);
+smash.over=true;assert(!smash.activateCard(1));
+const invalid=create(['shield','shield','invalid','fury']);assert.equal(new Set(invalid.loadout).size,3);assert(!invalid.loadout.includes('invalid'));
+const fresh=create(['super','shield','fury']);assert.equal(fresh.cardCooldown('super'),0);assert.equal(fresh.boosts.shield,0);
+console.log('PASS: equipped-only powers, unique fixed loadouts, three slot inputs, cooldowns, expiration, boost effects, health-only drops, no kill charge, no legacy shortcut and fresh-run reset.');
