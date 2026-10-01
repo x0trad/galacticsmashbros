@@ -1,13 +1,10 @@
 'use client';
 import type {CSSProperties} from 'react';
-import {Flame,Radio} from 'lucide-react';
 import {powerCards,powerIds,type PowerId} from './arena';
 
 function PowerIcon({id}:{id:PowerId}){
  if(id==='barricade')return <span className="barricade-icon" aria-hidden="true"/>;
- if(id==='shield'||id==='haste')return <span className={`power-sprite power-sprite-${id}`} aria-hidden="true"/>;
- const Icon=id==='fury'?Flame:Radio;
- return <Icon className="power-icon" aria-hidden="true"/>;
+ return <span className={`power-sprite power-sprite-${id}`} aria-hidden="true"/>;
 }
 const color=(id:PowerId)=>({'--power-color':powerCards[id].color} as CSSProperties);
 

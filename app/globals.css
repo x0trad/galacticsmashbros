@@ -68,6 +68,7 @@ html.game-active,html.game-active body{overflow:hidden;overscroll-behavior:none}
 /* Three-frame card sheets; artwork never intercepts a touch. */
 .power-sprite{--sprite-size:48px;display:block;width:var(--sprite-size);height:var(--sprite-size);flex-shrink:0;background-size:calc(var(--sprite-size)*3) var(--sprite-size);background-repeat:no-repeat;image-rendering:pixelated;pointer-events:none;animation:power-sprite-pulse 1.2s steps(3) infinite}
 .power-sprite-shield{background-image:url('/power-cards/shield.png')}.power-sprite-haste{background-image:url('/power-cards/haste.png')}
+.power-sprite-fury{background-image:url('/power-cards/fury.png')}.power-sprite-super{background-image:url('/power-cards/super-smash.png')}
 .loadout-slot .power-sprite{--sprite-size:64px}.power-card:disabled:not(.active) .power-sprite{animation:none;opacity:.55}
 @keyframes power-sprite-pulse{to{background-position:calc(var(--sprite-size)*-3) 0}}
 @media(max-width:650px),(any-pointer:coarse){.power-card .power-sprite{--sprite-size:36px}}
