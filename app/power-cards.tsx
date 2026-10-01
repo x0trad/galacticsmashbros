@@ -10,7 +10,7 @@ const color=(id:PowerId)=>({'--power-color':powerCards[id].color} as CSSProperti
 
 export function PowerLoadout({loadout,onChange}:{loadout:PowerId[];onChange:(next:PowerId[])=>void}){
  return <fieldset className="power-loadout"><legend>CHOOSE THREE POWER CARDS</legend><p>Tap a card during play or press 1, 2, or 3. All cards are free to try.</p><div className="loadout-slots">{loadout.map((id,slot)=>{
-  const card=powerCards[id];return <label className="loadout-slot" key={slot} style={color(id)}><span className="slot-number">SLOT {slot+1}</span><PowerIcon id={id}/><select aria-label={`Power card for slot ${slot+1}`} value={id} onChange={e=>{const next=[...loadout];next[slot]=e.target.value as PowerId;onChange(next)}}>{powerIds.map(option=><option key={option} value={option} disabled={option!==id&&loadout.includes(option)}>{powerCards[option].name}</option>)}</select><span className="card-description">{card.description}</span><small>{card.duration>0?`${card.duration}s active · `:''}{card.cooldown}s cooldown</small></label>;
+  const card=powerCards[id];return <label className="loadout-slot" key={slot} style={color(id)}><span className="slot-number">SLOT {slot+1}</span><span className="loadout-art"><PowerIcon id={id}/></span><select aria-label={`Power card for slot ${slot+1}`} value={id} onChange={e=>{const next=[...loadout];next[slot]=e.target.value as PowerId;onChange(next)}}>{powerIds.map(option=><option key={option} value={option} disabled={option!==id&&loadout.includes(option)}>{powerCards[option].name}</option>)}</select><span className="card-description">{card.description}</span><small>{card.duration>0?`${card.duration}s active · `:''}{card.cooldown}s cooldown</small></label>;
  })}</div></fieldset>;
 }
 

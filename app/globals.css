@@ -69,8 +69,8 @@ html.game-active,html.game-active body{overflow:hidden;overscroll-behavior:none}
 .power-sprite{--sprite-size:48px;display:block;width:var(--sprite-size);height:var(--sprite-size);flex-shrink:0;background-size:calc(var(--sprite-size)*3) var(--sprite-size);background-repeat:no-repeat;image-rendering:pixelated;pointer-events:none;animation:power-sprite-pulse 1.2s steps(3) infinite}
 .power-sprite-shield{background-image:url('/power-cards/shield.png')}.power-sprite-haste{background-image:url('/power-cards/haste.png')}
 .power-sprite-fury{background-image:url('/power-cards/fury.png')}.power-sprite-super{background-image:url('/power-cards/super-smash.png')}
-.loadout-slot .power-sprite{--sprite-size:64px}.power-card:disabled:not(.active) .power-sprite{animation:none;opacity:.55}
+.loadout-art{display:grid;place-items:center;width:100%;height:64px;flex:0 0 64px;pointer-events:none}.loadout-slot .power-sprite{--sprite-size:64px}.power-card:disabled:not(.active) .power-sprite{animation:none;opacity:.55}
 @keyframes power-sprite-pulse{to{background-position:calc(var(--sprite-size)*-3) 0}}
 @media(max-width:650px),(any-pointer:coarse){.power-card .power-sprite{--sprite-size:36px}}
-@media(max-width:450px){.loadout-slot .power-sprite{--sprite-size:48px}}
+@media(max-width:450px){.loadout-art{width:48px;height:48px}.loadout-slot .power-sprite{--sprite-size:48px}}
 @media(prefers-reduced-motion:reduce){.power-sprite{animation:none}}
