@@ -1,0 +1,72 @@
+{
+ "frames": {
+  "idle_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  },
+  "idle_1": {
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  },
+  "idle_2": {
+   "frame": {
+    "x": 384,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  }
+ },
+ "meta": {
+  "app": "Sprite Forge",
+  "format": "sprite-forge/1",
+  "image": "gsb-shield-card-v1.png",
+  "size": {
+   "w": 576,
+   "h": 192
+  },
+  "frameSize": {
+   "w": 192,
+   "h": 192
+  },
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 2,
+    "fps": 8,
+    "loop": true,
+    "row": 0,
+    "direction": "forward"
+   }
+  ],
+  "palette": [
+   "#080f19",
+   "#1b2138",
+   "#353456",
+   "#61577d",
+   "#a393b8",
+   "#e9e4ff",
+   "#352456",
+   "#604096",
+   "#9362d5",
+   "#c6a2ff",
+   "#eee0ff",
+   "#78f0ec"
+  ]
+ }
+}
