@@ -86,7 +86,7 @@ html.game-active,html.game-active body{overflow:hidden;overscroll-behavior:none}
 .rotate-prompt p{max-width:440px;margin:0;color:#b6c8ce;line-height:1.5}
 .rotate-prompt .small{font-size:14px;letter-spacing:0}
 
-/* Supplied title artwork stays in the lobby, with a compact mobile size. */
-.lobby .lobby-logo{width:min(320px,100%);margin:16px auto;line-height:0}
-.lobby-logo img{display:block;width:100%;height:auto;object-fit:contain}
-@media(max-width:650px){.lobby .lobby-logo{width:min(260px,100%);margin:12px auto}}
+/* Keep the supplied logo compact beside the readable header title. */
+.brand-logo{display:block;width:88px;height:88px;flex:0 0 88px;line-height:0}
+.brand-logo img{display:block;width:100%;height:100%;object-fit:contain}
+@media(max-width:650px){.brand-logo{width:64px;height:64px;flex-basis:64px}header:has(.brand-logo){gap:12px}header:has(.brand-logo)>.eyebrow{min-width:0;line-height:1.4}}
