@@ -90,3 +90,17 @@ html.game-active,html.game-active body{overflow:hidden;overscroll-behavior:none}
 .brand-logo{display:block;width:88px;height:88px;flex:0 0 88px;line-height:0}
 .brand-logo img{display:block;width:100%;height:100%;object-fit:contain}
 @media(max-width:650px){.brand-logo{width:64px;height:64px;flex-basis:64px}header:has(.brand-logo){gap:12px}header:has(.brand-logo)>.eyebrow{min-width:0;line-height:1.4}}
+
+/* A short, scrollable first-play guide with native modal focus handling. */
+.tutorial{margin:auto;width:min(560px,calc(100% - 24px));max-height:calc(100dvh - 32px);overflow:auto;padding:24px;background:#14232d;color:#eef1e7;border:1px solid #ccff59}
+.tutorial::backdrop{background:#081116e8}
+.tutorial h2{font-size:28px;font-weight:900;line-height:1.2;margin:10px 0 20px}
+.tutorial ol{padding-left:24px;list-style:decimal;display:grid;gap:18px}
+.tutorial li::marker{color:#ccff59;font-weight:bold}
+.tutorial h3{font-size:18px;font-weight:bold;margin:0 0 6px}
+.tutorial p{font-size:16px;line-height:1.5;color:#b6c8ce;margin:0}
+.tutorial .lime{color:#ccff59}
+.tutorial .tutorial-tip{margin-top:20px;padding-top:16px;border-top:1px solid #405660;font-size:14px}
+.tutorial-actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:24px}
+.tutorial-actions .launch{min-width:0;flex:1;padding:16px}
+.tutorial-actions .secondary{margin:0;padding:12px}
