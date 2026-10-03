@@ -77,7 +77,7 @@ export class Arena{
  for(const h of this.pickups){h.life-=dt;if(Math.hypot(p.x-h.x,p.y-h.y)<42&&p.hp<100){p.hp=Math.min(100,p.hp+25);this.sound('heal');h.life=0;this.burst(p.x,p.y,'#8affd0')}}this.pickups=this.pickups.filter(h=>h.life>0);for(const a of this.particles){a.x+=a.vx*dt;a.y+=a.vy*dt;a.life-=dt}this.particles=this.particles.filter(a=>a.life>0);if(this.enemies.length===0){this.lasers=[];this.between-=dt;if(this.between<=0){this.nextWave();this.between=2.5}}}
  damagePlayer(amount:number){const p=this.player;if(this.over||p.hurt>0||this.boosts.shield>0)return;p.hp=Math.max(0,p.hp-amount);p.hurt=1;this.shake=9;this.burst(p.x,p.y,'#ff717b');this.sound('damage');if(p.hp<=0){this.over=true;this.sound('over')}}
  updateShooter(e:Actor,dt:number){if(e.hurt>0)return;
- if((e.aimTimer||0)>0){e.aimTimer=Math.max(0,(e.aimTimer||0)-dt);if(e.aimTimer===0){const dx=e.aimX??0,dy=e.aimY??1;if(this.lasers.length<8){this.lasers.push({x:e.x+dx*25,y:e.y+dy*25,vx:dx*280,vy:dy*280,life:5});this.sound('laser')}e.fireTimer=Math.max(2.6,3.8-this.wave*.08)}return}
+ if((e.aimTimer||0)>0){e.aimTimer=Math.max(0,(e.aimTimer||0)-dt);if(e.aimTimer===0){const dx=e.aimX??0,dy=e.aimY??1;if(this.lasers.length<8){this.lasers.push({x:e.x+dx*25,y:e.y+dy*25,vx:dx*322,vy:dy*322,life:5});this.sound('laser')}e.fireTimer=Math.max(2.6,3.8-this.wave*.08)}return}
  e.fireTimer=(e.fireTimer||0)-dt;if(e.fireTimer<=0){const dx=this.player.x-e.x,dy=this.player.y-e.y,d=Math.hypot(dx,dy)||1;e.aimX=dx/d;e.aimY=dy/d;e.aimTimer=.9}
  }
 
