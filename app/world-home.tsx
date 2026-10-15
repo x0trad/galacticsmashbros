@@ -2,12 +2,12 @@
 import {useEffect,useRef,useState} from 'react';
 import {Menu,X} from 'lucide-react';
 type Destination='play'|'characters'|'cards';
-export default function WorldHome({onEnter,muted,musicStarted,onToggleSound}:{onEnter:(destination:Destination)=>void;muted:boolean;musicStarted:boolean;onToggleSound:()=>void}){
+export default function WorldHome({onEnter,muted,musicStarted,onLandingInteraction,onToggleSound}:{onEnter:(destination:Destination)=>void;muted:boolean;musicStarted:boolean;onLandingInteraction:()=>void;onToggleSound:()=>void}){
  const menu=useRef<HTMLDetailsElement>(null),about=useRef<HTMLDialogElement>(null);
  const [showAbout,setShowAbout]=useState(false);
  useEffect(()=>{if(showAbout)about.current?.showModal();else about.current?.close()},[showAbout]);
  function enter(destination:Destination){if(menu.current)menu.current.open=false;onEnter(destination)}
- return <main className="world-home">
+ return <main className="world-home" onPointerDownCapture={onLandingInteraction} onClickCapture={onLandingInteraction} onKeyDownCapture={onLandingInteraction}>
   <div className="world-status">WAVE ARENA <span>✦</span> FREE TO PLAY</div>
   <header className="world-header">
    <details ref={menu} className="world-menu"><summary aria-label="Open navigation"><Menu size={24}/><span>MENU</span></summary><nav aria-label="Main navigation"><button onClick={()=>enter('play')}>Play</button><button onClick={()=>enter('characters')}>Characters</button><button onClick={()=>enter('cards')}>Power Cards</button><button onClick={()=>{if(menu.current)menu.current.open=false;setShowAbout(true)}}>About</button></nav></details>
