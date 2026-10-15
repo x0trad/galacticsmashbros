@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {Menu,X} from 'lucide-react';
 type Destination='play'|'characters'|'cards';
-export default function WorldHome({onEnter,muted,onToggleSound}:{onEnter:(destination:Destination)=>void;muted:boolean;onToggleSound:()=>void}){
+export default function WorldHome({onEnter,muted,musicStarted,onToggleSound}:{onEnter:(destination:Destination)=>void;muted:boolean;musicStarted:boolean;onToggleSound:()=>void}){
  const menu=useRef<HTMLDetailsElement>(null),about=useRef<HTMLDialogElement>(null);
  const [showAbout,setShowAbout]=useState(false);
  useEffect(()=>{if(showAbout)about.current?.showModal();else about.current?.close()},[showAbout]);
@@ -12,7 +12,7 @@ export default function WorldHome({onEnter,muted,onToggleSound}:{onEnter:(destin
   <header className="world-header">
    <details ref={menu} className="world-menu"><summary aria-label="Open navigation"><Menu size={24}/><span>MENU</span></summary><nav aria-label="Main navigation"><button onClick={()=>enter('play')}>Play</button><button onClick={()=>enter('characters')}>Characters</button><button onClick={()=>enter('cards')}>Power Cards</button><button onClick={()=>{if(menu.current)menu.current.open=false;setShowAbout(true)}}>About</button></nav></details>
    <a href="/" className="world-brand" aria-label="Galactic Smash Bros home"><img src="/branding/gsb-logo.png" alt="" width={1254} height={1254}/></a>
-   <button className="world-sound" onClick={onToggleSound} aria-label={muted?'Turn sound on':'Turn sound off'} aria-pressed={!muted}>{muted?'SOUND OFF':'SOUND ON'} ♪</button>
+   <button className="world-sound" onClick={onToggleSound} aria-label={muted?'Turn sound on':musicStarted?'Turn sound off':'Play landing music'} aria-pressed={!muted&&musicStarted}>{muted?'SOUND OFF':musicStarted?'SOUND ON':'TAP FOR SOUND'} ♪</button>
   </header>
   <section className="world-scene" aria-label="Galactic Smash Bros home">
    <img className="world-backdrop" src="/branding/orbital-world.png" alt="" fetchPriority="high"/>

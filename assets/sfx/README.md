@@ -9,4 +9,4 @@ These sounds were made with the [SFX Forge](https://github.com/x0trad/sfxforge) 
 | `smash-character-select` | Choosing a character |
 | `smash-menu-confirm` | Play Now and Enter the Arena |
 
-Music begins after the first play interaction because browsers require a user gesture before audio playback. The Sound On/Off control affects both these sounds and the existing arena effects.
+Landing music starts on page load where the browser permits autoplay. On phones and browsers that block it, the first tap starts the music; the landing page also shows a **Tap for sound** control until playback succeeds. The Sound On/Off control affects both these sounds and the existing arena effects.
