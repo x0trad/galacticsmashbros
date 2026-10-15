@@ -155,3 +155,7 @@ html.game-active,html.game-active body{overflow:hidden;overscroll-behavior:none}
 .world-home .world-menu nav button{font-weight:800;font-size:19px}
 .world-home .world-about h2{font-weight:800}
 @media(max-width:650px){.world-home .world-play{font-size:23px}.world-home .world-content>p{font-size:21px}.world-home .world-play-note{font-size:14px}}
+
+.world-sound{background:none;border:0;color:#172a31;font:800 12px 'Baloo 2',Arial,sans-serif;letter-spacing:1px;padding:10px;white-space:nowrap}
+.world-sound:hover{color:#287c7c}
+@media(max-width:650px){.world-sound{font-size:11px;padding:8px 0}}

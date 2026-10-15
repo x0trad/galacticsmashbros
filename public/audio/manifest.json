@@ -1,0 +1,46 @@
+{
+  "format": "sfx-forge/1",
+  "generated": "2026-10-15T12:45:07.660Z",
+  "sounds": [
+    {
+      "id": "smash-menu-loop",
+      "name": "menu loop",
+      "category": "music",
+      "file": "smash-menu-loop.wav",
+      "source": "smash-menu-loop.sfx.json",
+      "duration": 38.249,
+      "peakDb": -1,
+      "rmsDb": -14.7
+    },
+    {
+      "id": "smash-battle-theme",
+      "name": "battle theme",
+      "category": "music",
+      "file": "smash-battle-theme.wav",
+      "source": "smash-battle-theme.sfx.json",
+      "duration": 39.929,
+      "peakDb": -1,
+      "rmsDb": -14.9
+    },
+    {
+      "id": "smash-character-select",
+      "name": "character select",
+      "category": "select",
+      "file": "smash-character-select.wav",
+      "source": "smash-character-select.sfx.json",
+      "duration": 0.111,
+      "peakDb": -1,
+      "rmsDb": -7.7
+    },
+    {
+      "id": "smash-menu-confirm",
+      "name": "menu confirm",
+      "category": "confirm",
+      "file": "smash-menu-confirm.wav",
+      "source": "smash-menu-confirm.sfx.json",
+      "duration": 0.198,
+      "peakDb": -1,
+      "rmsDb": -12.1
+    }
+  ]
+}
