@@ -276,3 +276,42 @@
     padding-right: 12px;
   }
 }
+
+/* Match the landing page while retaining a compact, readable combat view. */
+.pvp:not(.pvp-active){background:linear-gradient(#092333bd,#092333ea),url('/branding/orbital-world.png') center/cover fixed;color:#eff4e8;font-family:'Baloo 2',Arial,sans-serif}
+.pvp:not(.pvp-active) header{height:76px;align-items:center;padding:8px 22px;border:3px solid #d7e6c7;border-top:0;border-radius:0 0 22px 22px;background:#f2f4e9;color:#1a3c43;box-shadow:0 6px 0 #071b2380}
+.pvp:not(.pvp-active) header a{min-height:48px;display:flex;align-items:center;padding-left:57px;background:url('/branding/gsb-logo.png') left center/50px 50px no-repeat;color:#1b4247;text-decoration:none;font:800 18px 'Baloo 2',Arial,sans-serif}
+.pvp:not(.pvp-active) header span{font:800 14px 'Baloo 2',Arial,sans-serif;letter-spacing:1px;color:#316b66}
+.pvp:not(.pvp-active) .pvp-lobby{max-width:840px;margin:28px auto 50px;padding:clamp(20px,4vw,44px);border:3px solid #dce8d0;border-radius:26px;background:#f2f4eaf5;color:#1b3c43;box-shadow:8px 8px 0 #071b238c}
+.pvp:not(.pvp-active) .pvp-eyebrow{color:#2d806b;font:800 15px 'Baloo 2',Arial,sans-serif;letter-spacing:1px}
+.pvp:not(.pvp-active) h1{font:800 clamp(40px,7vw,70px)/.95 'Baloo 2',Arial,sans-serif;letter-spacing:-1px;margin:10px 0 16px}
+.pvp:not(.pvp-active) p{font:700 17px/1.45 'Baloo 2',Arial,sans-serif;color:#4a686d}
+.pvp:not(.pvp-active) label,.pvp:not(.pvp-active) legend{font:800 16px 'Baloo 2',Arial,sans-serif}
+.pvp:not(.pvp-active) input:not([type='radio']){min-height:48px;border:2px solid #9bbcb1;border-radius:11px;background:#fffdf4;color:#1b3c43;font:700 16px 'Baloo 2',Arial,sans-serif}
+.pvp:not(.pvp-active) .pvp-roster{gap:12px;margin-top:12px}
+.pvp:not(.pvp-active) .pvp-roster label{min-height:145px;border:2px solid #aecac0;border-radius:17px;background:#fffdf4;color:#24454a;box-shadow:0 4px 0 #c4d6c4;text-align:center}
+.pvp:not(.pvp-active) .pvp-roster label:has(input:checked){border-color:#58a773;background:#e8ffc4;box-shadow:0 4px 0 #86b969}
+.pvp:not(.pvp-active) .pvp-roster input{accent-color:#3e956c}
+.pvp:not(.pvp-active) button{min-height:50px;border:4px solid #f2ffd2;border-radius:13px;background:#ccff59;color:#1b3c43;box-shadow:inset 0 -4px 0 #95bb4c,0 4px 0 #367465;font:800 17px 'Baloo 2',Arial,sans-serif}
+.pvp:not(.pvp-active) button.pvp-secondary{border:2px solid #8fb9ab;background:#e6f2e2;color:#1d5356;box-shadow:0 4px 0 #bed7c3}
+.pvp:not(.pvp-active) .pvp-seats>div{border:2px solid #aecac0;border-radius:16px;background:#fffdf4;color:#27464b;box-shadow:0 4px 0 #c4d6c4}
+.pvp:not(.pvp-active) .pvp-error{max-width:840px;margin:15px auto;border:2px solid #d2ad75;border-radius:12px;background:#fff1d7;color:#704421}
+.pvp-active{background:#112a35;font-family:'Baloo 2',Arial,sans-serif}
+.pvp-active header{min-height:48px;align-items:center;font:800 13px 'Baloo 2',Arial,sans-serif}
+.pvp-active header a{color:#ccff59}
+.pvp-active .pvp-hud{border-radius:12px;background:#e6f2d7;color:#193d43;padding:8px 12px;font:800 13px 'Baloo 2',Arial,sans-serif}
+.pvp-active .pvp-hud button{min-height:42px;border-radius:9px}
+.pvp-active .pvp-controls{border-top:2px solid #6e9f91;background:#e6f2d7;border-radius:14px;padding:6px}
+.pvp-active .pvp-stick{background:#d3e5d8;border-color:#6e9d8d}
+.pvp-active .pvp-confirm{background:#0b2632ef;color:#f2f4e9;font-family:'Baloo 2',Arial,sans-serif}
+@media(max-width:650px){
+ .pvp:not(.pvp-active){padding:0 12px 28px;background-attachment:scroll}
+ .pvp:not(.pvp-active) header{height:68px;padding:6px 12px}
+ .pvp:not(.pvp-active) header a{padding-left:45px;background-size:42px 42px;font-size:13px}
+ .pvp:not(.pvp-active) header span{font-size:11px}
+ .pvp:not(.pvp-active) .pvp-lobby{margin:18px auto 26px;padding:18px;border-radius:20px}
+ .pvp:not(.pvp-active) .pvp-roster{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pvp:not(.pvp-active) .pvp-join{flex-direction:column}
+ .pvp:not(.pvp-active) .pvp-join button{width:100%}
+ .pvp-active{padding-left:8px;padding-right:8px}
+}
