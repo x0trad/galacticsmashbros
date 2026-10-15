@@ -1,6 +1,6 @@
 {
   "format": "sfx-forge/1",
-  "generated": "2026-10-15T12:45:07.660Z",
+  "generated": "2026-10-15T13:15:56.117Z",
   "sounds": [
     {
       "id": "smash-menu-loop",
@@ -41,6 +41,16 @@
       "duration": 0.198,
       "peakDb": -1,
       "rmsDb": -12.1
+    },
+    {
+      "id": "smash-house-landing",
+      "name": "GSB landing house",
+      "category": "music",
+      "file": "smash-house-landing.wav",
+      "source": "smash-house-landing.sfx.json",
+      "duration": 33.345,
+      "peakDb": -1,
+      "rmsDb": -17.1
     }
   ]
 }

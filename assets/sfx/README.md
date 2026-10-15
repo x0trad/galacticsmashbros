@@ -4,7 +4,8 @@ These sounds were made with the [SFX Forge](https://github.com/x0trad/sfxforge) 
 
 | Sound | Use |
 | --- | --- |
-| `smash-menu-loop` | Home and character-selection music |
+| `smash-house-landing` | House soundtrack on the landing page |
+| `smash-menu-loop` | Character-selection and card-loadout music |
 | `smash-battle-theme` | Wave arena music |
 | `smash-character-select` | Choosing a character |
 | `smash-menu-confirm` | Play Now and Enter the Arena |
