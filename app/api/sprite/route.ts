@@ -1,6 +1,7 @@
 import {env} from 'cloudflare:workers';
 import {generationRequest, generationError} from '../../sprite-generation';
-import {animatePixels, createPixelMaster, pixelReference, renderPixelSheet} from '../../sprite-forge/engine';
+import {animatePixels, createPixelMaster, pixelReference, renderPixelSheet, renderPixelReference} from '../../sprite-forge/engine';
+import {Buffer} from 'node:buffer';
 import {pixelPlanRequest} from '../../sprite-forge/planner';
 import {parseForgeDocument, type ForgeDocument} from '../../sprite-forge/document';
 import {type GenerationStage} from '../../sprite-format';
@@ -75,7 +76,8 @@ export async function POST(request: Request) {
         }
         const image = result.output?.find(item => item.type === 'image_generation_call' && item.result)?.result;
         if (!image || image.length > 23_000_000 || !image.startsWith('iVBOR')) throw new Error('The image service did not return a complete PNG. Please retry this step.');
-        send({type: 'result', stage, image: `data:image/png;base64,${image}`});
+        // The review image is already game-sized indexed art, not a smooth illustration.
+        send({type: 'result', stage, image: renderPixelReference(pixelReference(Buffer.from(image, 'base64')))});
       } catch (error) {
         await db.prepare('UPDATE sprite_image_limits SET attempts=MAX(0,attempts-1) WHERE identity=? AND day=? AND stage=?').bind(identity, day, stage).run().catch(() => {});
         send({type: 'error', error: abort.signal.aborted ? 'This image took too long. Your completed steps are saved; retry this step.' : error instanceof Error ? error.message : 'Could not generate the image. Please retry.'});

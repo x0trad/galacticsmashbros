@@ -8,6 +8,11 @@ import {directions, animationDirections, type AnimationKind, type Direction} fro
 import {alphabet, parseForgeDocument, type ForgeDocument, type ForgeFrame, type Rig, type Part} from './document';
 
 export type PixelReference = {palette: string[]; rows: string[]};
+export function renderPixelReference(reference: PixelReference): string {
+  const sprite=F.newSprite({id:'full-body-reference',name:'Full-body pixel reference',width:64,height:64,palette:reference.palette});
+  const frame=F.getFrame(sprite,'idle',0); frame.rows=reference.rows;
+  return `data:image/png;base64,${F.renderFramePNG(sprite,frame,3).toString('base64')}`;
+}
 export function pixelReference(buffer: Uint8Array): PixelReference {
   const png = PNG.sync.read(Buffer.from(buffer), {checkCRC: true});
   if (png.width > 2048 || png.height > 2048) throw new Error('Use a full-body image no larger than 2048 pixels.');
@@ -69,21 +74,25 @@ function pose(doc: ForgeDocument, base: ForgeFrame, rig: Rig, kind: AnimationKin
   // Cut the actual authored pixels, move the parts, then composite them again.
   for(const key of parts){const p=rig[key];F.rect(g,p.x,p.y,p.w,p.h,'.',doc,true,false);}
   for(const key of parts){
-    const p=rig[key],left=key.startsWith('left'),leg=key.endsWith('Leg'),arm=key.endsWith('Arm');let dx=0,dy=0;
+    const p=rig[key],left=key.startsWith('left'),leg=key.endsWith('Leg'),arm=key.endsWith('Arm');let dx=0,dy=0,extended=false;
     if(kind==='idle'){if(key==='head')dy=[0,-1,0,0][frame];if(arm)dy=[0,0,1,0][frame];}
     if(kind==='walk'){
-      if(leg){dx=(direction==='left'||direction==='right'?3:1)*phase*(left?1:-1);dy=phase*(left?1:-1)<0?-1:0;}
+      if(leg){dx=(direction==='left'||direction==='right'?3:1)*phase*(left?1:-1);dy=frame===1?(left?-2:0):frame===3?(left?0:-2):phase*(left?1:-1)<0?-1:0;}
       if(arm)dx=-phase*(left?1:-1);
       if(key==='head')dy=frame%2?-1:0;
     }
     if(kind==='punch'){
       if(leg){dx=(left?-1:1)*(frame===3?1:2);dy=left&&frame===2?-1:0;}
       const near=direction==='left'?(rig.leftArm.x<rig.rightArm.x?'leftArm':'rightArm'):(rig.leftArm.x>rig.rightArm.x?'leftArm':'rightArm');
-      if(key===near){dx=[0,7,5,0][frame]*(direction==='left'?-1:1);dy=frame===1?-2:0;
-        const colours=source.slice(p.y,p.y+p.h).flatMap((r:string[])=>r.slice(p.x,p.x+p.w)).filter((c:string)=>c!=='.');
-        const colour=colours.find((c:string)=>doc.palette[alphabet.indexOf(c)]!=='#000000')||colours[0];
-        if(colour&&dx)for(let thick=-1;thick<=1;thick++)F.line(g,p.x+Math.floor(p.w/2),p.y+2+thick,p.x+Math.floor(p.w/2)+dx,p.y+2+dy+thick,colour,doc,false);
-      }
+      extended=key===near&&(frame===1||frame===2);
+    }
+    if(extended){
+      // Rotate the original arm pixels around the shoulder so the fist reaches
+      // horizontally, rather than moving a hanging arm away from the body.
+      const sign=direction==='left'?-1:1,mid=Math.floor(p.w/2),ax=p.x+mid,ay=p.y+2;
+      const reach=Math.min(p.h,sign<0?ax-4:59-ax)*(frame===2?.85:1);
+      for(let y=0;y<p.h;y++)for(let x=0;x<p.w;x++){const c=source[p.y+y][p.x+x];if(c!=='.')F.setPx(g,ax+sign*Math.round((y+1)*reach/p.h),ay-sign*(x-mid),c,doc,false);}
+      continue;
     }
     for(let y=0;y<p.h;y++)for(let x=0;x<p.w;x++){const c=source[p.y+y][p.x+x];if(c!=='.')F.setPx(g,p.x+x+dx,p.y+y+dy,c,doc,false);}
   }
