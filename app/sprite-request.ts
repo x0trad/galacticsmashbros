@@ -1,15 +1,16 @@
+import {parseForgeDocument, type ForgeDocument} from './sprite-forge/document';
 import {isPngData, type GenerationStage, type CharacterStyle} from './sprite-format';
 
-export async function readGeneration(response: Response): Promise<string> {
+export async function readSpriteGeneration(response: Response): Promise<{image: string; forge?: ForgeDocument}> {
   if (!response.ok) {const result = await response.json().catch(() => null) as {error?: string} | null; throw new Error(result?.error || 'The image service is unavailable. Please retry.');}
   if (!response.body) throw new Error('The image service returned no data.');
   const reader = response.body.getReader(), decoder = new TextDecoder();
-  let buffer = '', image = '';
+  let buffer = '', image = ''; let forge: ForgeDocument | undefined;
   const consume = (line: string) => {
     if (!line.trim()) return;
-    const event = JSON.parse(line) as {type?: string; image?: unknown; error?: string};
+    const event = JSON.parse(line) as {type?: string; image?: unknown; forge?: unknown; error?: string};
     if (event.type === 'error') throw new Error(event.error || 'Could not finish this image.');
-    if (event.type === 'result') {if (!isPngData(event.image)) throw new Error('The generated image is invalid.'); image = event.image;}
+    if (event.type === 'result') {if (!isPngData(event.image)) throw new Error('The generated image is invalid.'); image = event.image; if (event.forge) forge = parseForgeDocument(event.forge);}
   };
   try {
     while (true) {
@@ -22,12 +23,14 @@ export async function readGeneration(response: Response): Promise<string> {
     }
     consume(buffer);
     if (!image) throw new Error('The connection ended before the image was ready. Retry this step.');
-    return image;
+    return {image, forge};
   } finally {await reader.cancel().catch(() => {}); reader.releaseLock();}
 }
-export async function generateImage(stage: GenerationStage, artwork: Blob, refinement: string, signal: AbortSignal, style: CharacterStyle = 'normal') {
+export async function readGeneration(response: Response): Promise<string> {return (await readSpriteGeneration(response)).image;}
+export async function generateImage(stage: GenerationStage, artwork: Blob, refinement: string, signal: AbortSignal, style: CharacterStyle = 'normal', forge?: ForgeDocument) {
   const form = new FormData();
   form.set('style', style); form.set('stage', stage); form.set('artwork', artwork, 'reference.png'); form.set('refinement', refinement);
+  if (forge) form.set('forge', JSON.stringify(forge));
   if (stage !== 'fullbody') form.set('approved', 'true');
-  return readGeneration(await fetch('/api/sprite', {method: 'POST', body: form, signal}));
+  return readSpriteGeneration(await fetch('/api/sprite', {method: 'POST', body: form, signal}));
 }

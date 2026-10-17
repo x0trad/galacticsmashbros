@@ -1,22 +1,18 @@
-# Artwork → full body → animated fighter
+# NFT artwork → full body → Sprite Forge fighter
 
-The creator uses a two-stage visual workflow:
+1. Upload PNG, JPEG or WebP artwork and choose Normal or Chibi proportions.
+2. Astra uses the image tool only to make a complete full-body reference. Review or redraw it before animation.
+3. The backend samples that approved PNG onto a 64×64 grid and reduces it to at most 32 colours. This preserves the front-view artwork as actual indexed pixels.
+4. Astra authors the other three facing views and limb regions as structured pixel rows. This request has no image-generation tool.
+5. The Sprite Forge engine builds idle, walk and punch animations by moving the authored head and limb pixels. Walking and punch stages are local rendering operations in the Worker, with no OpenAI call.
+6. Sprite Forge exports four frames per direction (40 total). The PNGs enlarge each logical pixel to an exact 3×3 block: 192×192 frames, no smoothing or antialiasing.
 
-1. Upload a PNG, JPEG or WebP reference (up to 12 MB) and optionally add design notes. Astra directs the image-generation tool to draw a complete full-body pixel character, preserving the source identity and palette.
-2. Review the actual generated image. Redraw it with design notes or download it. Nothing is animated until the player presses **Approve & generate sprites**.
-3. Use the approved full-body image as the image input for three sequential image-generation requests: idle, walk and punch. Each request creates an actual transparent PNG sheet. Idle and walk have four directions and four frames per direction; punches have four frames for each of left/right, with open legs in a walking stride.
-4. Slice the images into forty 192×192 frames, preview the loops, retry individual animations if needed, and equip the fighter in wave mode. A combined 768×1920 sheet can be downloaded: idle down/left/right/up, walk down/left/right/up, punch left/right, four frames across each row.
+`app/sprite-forge/format.js` reuses the user's MIT-licensed local MCP implementation from `Downloads/sprite-mcp/src/format.js`. Only its PNG import uses pngjs's bundled browser implementation for Worker compatibility. This is the same palette, pixel-row, drawing and export format as the local Sprite Forge editor; the production server does not connect to a user's local stdio process. No local filesystem or MCP endpoint is exposed publicly.
 
-`gpt-6-astra` orchestrates `gpt-image-2.5-sunburst` through the Responses image-generation tool. The old fixed-feature JSON schema and geometric character painter are removed. No generated art is substituted with a preset sprite. The source artwork is not used directly for animation: the approved full-body PNG is passed to every animation request.
+The adapter in `engine.ts` adds bounded colour quantization, pixel-part animation and 3× export. `planner.ts` requests three original directional pixel views and a rig. Characters are not recoloured presets. Facing views, limb animation, and identity still need visual review; individual body-part motion can need artist refinement. The downloadable `.sprite.json` project opens in the existing editor/MCP for that work. Changing the full-body style redraws the reference; rebuilding idle regenerates all dependent movements. Old saved animation sheets remain usable and can be rebuilt through Redraw idle.
 
-The server uses the existing production `OPENAI_API_KEY` secret. Requests stream progress heartbeats while the image tool draws. An image can take several minutes. The D1 migration adds per-IP, per-stage daily limits (50 successful/active requests for each stage during testing). Upstream failures refund the attempt; invalid image, origin, stage, and missing-approval requests are rejected before provider calls. The approval flag enforces the normal UI flow; it does not prove ownership or prevent a modified client submitting another image. Provider image calls are billable.
+Full-body requests and pixel-view planning use the existing production `OPENAI_API_KEY` secret. D1 permits 50 successful/active requests per IP, per stage, per UTC day during testing. Provider failures refund the attempt. Origin, image, stage, approval and Sprite Forge input checks occur before provider spending. The approval flag follows the UI flow and does not prove NFT ownership.
 
-Completed full-body images and animation sheets are saved as a browser-local IndexedDB draft after each successful stage. Reloading resumes that draft; replacing the full-body image invalidates prior sheets. Equipping saves the actual PNG frames in IndexedDB. This is device-local storage and can be cleared by the browser. Download the images to keep a separate copy. Existing preset-generated v1 fighters are no longer offered by the creator.
+Drafts and equipped fighters stay in IndexedDB in the current browser. Completed stages survive refresh and interrupted requests. Downloads include the full-body reference, combined PNG sheet, and editable Sprite Forge JSON. NFT ownership, wallet gating, minting, and server storage of character collections are separate features.
 
-This is an artwork-upload prototype: no NFT ownership verification, minting, account asset library, or custom-fighter PvP. Image models can still produce imperfect directions, alignment, or poses. The animation review is deliberate: a player can redraw one sheet before equipping. The client rejects sheets with incorrect dimensions, empty frames or opaque backgrounds.
-
-Validation: `node tests/sprite-creator.test.mjs` exercises the Worker route against a mocked image provider and real D1 test database, including validation, review gate, supplied image bytes, rate limits/refunds, streaming boundaries, and the complete frame manifest. Type checking and production build run before publication.
-
-API reference: https://developers.openai.com/api/docs/guides/tools-image-generation
-
-Players can choose **Normal** (natural body proportions) or **Chibi** (large head and compact body) before full-body generation. The choice is saved in the draft and passed to animation generation. Changing it on an existing design requires redrawing the full body; the reviewed image remains the canonical animation reference. Older drafts default to Normal.
+Validation: `node tests/sprite-creator.test.mjs` runs the Worker against a mocked provider and real D1 test database. It checks original reference bytes, Normal/Chibi styles, no image tool in the pixel planner, zero provider calls for walk/punch, 40-frame layout, exact 3× pixels, binary alpha, rate limits/refunds and streaming boundaries. Type checking and production build run before publication.

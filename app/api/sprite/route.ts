@@ -1,12 +1,15 @@
 import {env} from 'cloudflare:workers';
 import {generationRequest, generationError} from '../../sprite-generation';
+import {animatePixels, createPixelMaster, pixelReference, renderPixelSheet} from '../../sprite-forge/engine';
+import {pixelPlanRequest} from '../../sprite-forge/planner';
+import {parseForgeDocument, type ForgeDocument} from '../../sprite-forge/document';
 import {type GenerationStage} from '../../sprite-format';
 
 const json = (body: unknown, status = 200) => Response.json(body, {status, headers: {'Cache-Control': 'no-store'}});
 const dailyStageLimit = 50;
 const stages = new Set(['fullbody', 'idle', 'walk', 'punch']);
 const runtime = () => env as unknown as {OPENAI_API_KEY?: string; DB?: D1Database};
-export function GET() {return json({available: Boolean(runtime().OPENAI_API_KEY), pipeline: 'fullbody-then-sprites'});}
+export function GET() {return json({available: Boolean(runtime().OPENAI_API_KEY), pipeline: 'fullbody-then-sprite-forge', sprite_engine: 'sprite-forge-pixels-v1'});}
 
 export async function POST(request: Request) {
   if (request.headers.get('origin') !== new URL(request.url).origin) return json({error: 'Use the creator from the game site.'}, 403);
@@ -22,6 +25,12 @@ export async function POST(request: Request) {
   if (stage !== 'fullbody' && form.get('approved') !== 'true') return json({error: 'Approve your full-body design before generating sprites.'}, 400);
   const file = form.get('artwork');
   if (!(file instanceof File) || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size < 100 || file.size > 12_000_000) return json({error: 'Choose a PNG, JPEG or WebP image under 12 MB.'}, 400);
+  let suppliedForge: ForgeDocument | undefined;
+  if (stage === 'walk' || stage === 'punch') {
+    const raw = form.get('forge');
+    try {if (typeof raw !== 'string' || raw.length > 600_000) throw new Error(); suppliedForge = parseForgeDocument(JSON.parse(raw));}
+    catch {return json({error: 'Generate Sprite Forge idle frames first, then continue walking and punch animations.'}, 400);}
+  }
   const bytes = new Uint8Array(await file.arrayBuffer());
   const valid = file.type === 'image/png' ? bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71 : file.type === 'image/jpeg' ? bytes[0] === 255 && bytes[1] === 216 : String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
   if (!valid) return json({error: 'This is not a valid image file.'}, 400);
@@ -46,9 +55,24 @@ export async function POST(request: Request) {
       const heartbeat = setInterval(() => send({type: 'progress', stage}), 10_000);
       const timeout = setTimeout(() => abort.abort(), 240_000);
       try {
-        const response = await fetch('https://api.openai.com/v1/responses', {method: 'POST', headers: {Authorization: `Bearer ${key}`, 'Content-Type': 'application/json'}, body: JSON.stringify(generationRequest(stage, input, refinement, identity, style)), signal: abort.signal});
-        const result = await response.json() as {error?: {code?: string}; output?: Array<{type?: string; result?: string; status?: string}>};
+        if (suppliedForge && (stage === 'walk' || stage === 'punch')) {
+          const forge = animatePixels(suppliedForge, stage);
+          send({type: 'result', stage, image: renderPixelSheet(forge, stage), forge});
+          return;
+        }
+        const reference = stage === 'idle' ? pixelReference(bytes) : null;
+        const body = reference ? pixelPlanRequest(input, reference, style, identity) : generationRequest('fullbody', input, refinement, identity, style);
+        const response = await fetch('https://api.openai.com/v1/responses', {method: 'POST', headers: {Authorization: `Bearer ${key}`, 'Content-Type': 'application/json'}, body: JSON.stringify(body), signal: abort.signal});
+        const result = await response.json() as {error?: {code?: string}; output?: Array<{type?: string; result?: string; status?: string; content?: Array<{type?: string; text?: string}>}>};
         if (!response.ok) throw new Error(generationError(response.status, result.error?.code));
+        if (reference) {
+          const text = result.output?.flatMap(item => item.content || []).filter(item => item.type === 'output_text').map(item => item.text || '').join('');
+          let plan: unknown;
+          try {plan = JSON.parse(text || '');} catch {throw new Error('The pixel artist did not finish the Sprite Forge document. Retry idle generation.');}
+          const forge = createPixelMaster(reference, plan);
+          send({type: 'result', stage, image: renderPixelSheet(forge, 'idle'), forge});
+          return;
+        }
         const image = result.output?.find(item => item.type === 'image_generation_call' && item.result)?.result;
         if (!image || image.length > 23_000_000 || !image.startsWith('iVBOR')) throw new Error('The image service did not return a complete PNG. Please retry this step.');
         send({type: 'result', stage, image: `data:image/png;base64,${image}`});
