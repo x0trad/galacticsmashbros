@@ -3,6 +3,7 @@ import {generationRequest, generationError} from '../../sprite-generation';
 import {type GenerationStage} from '../../sprite-format';
 
 const json = (body: unknown, status = 200) => Response.json(body, {status, headers: {'Cache-Control': 'no-store'}});
+const dailyStageLimit = 50;
 const stages = new Set(['fullbody', 'idle', 'walk', 'punch']);
 const runtime = () => env as unknown as {OPENAI_API_KEY?: string; DB?: D1Database};
 export function GET() {return json({available: Boolean(runtime().OPENAI_API_KEY), pipeline: 'fullbody-then-sprites'});}
@@ -28,8 +29,8 @@ export async function POST(request: Request) {
   const identity = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('');
   const day = Math.floor(Date.now() / 86_400_000);
   try {
-    const spent = await db.prepare('INSERT INTO sprite_image_limits(identity,day,stage,attempts) VALUES(?,?,?,1) ON CONFLICT(identity,day,stage) DO UPDATE SET attempts=attempts+1 WHERE attempts<3').bind(identity, day, stage).run();
-    if (!spent.meta.changes) return json({error: `Daily ${stage === 'fullbody' ? 'full-body' : stage} limit reached. Your saved progress is safe; try again tomorrow.`}, 429);
+    const spent = await db.prepare('INSERT INTO sprite_image_limits(identity,day,stage,attempts) VALUES(?,?,?,1) ON CONFLICT(identity,day,stage) DO UPDATE SET attempts=attempts+1 WHERE attempts<?').bind(identity, day, stage, dailyStageLimit).run();
+    if (!spent.meta.changes) return json({error: `Daily ${stage === 'fullbody' ? 'full-body' : stage} limit of ${dailyStageLimit} reached. Your saved progress is safe; try again tomorrow.`}, 429);
   } catch {return json({error: 'The image creator is temporarily unavailable.'}, 503);}
   let binary = '';
   for (let offset = 0; offset < bytes.length; offset += 32768) binary += String.fromCharCode(...bytes.subarray(offset, offset + 32768));

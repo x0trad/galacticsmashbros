@@ -39,7 +39,11 @@ try {
  assert.match(requestBody.input[0].content[0].text,/chosen CHIBI style/);
  fail=true;response=await post('punch',true);assert.match(await response.text(),/billing is active/);
  assert.equal((await db.prepare("SELECT attempts FROM sprite_image_limits WHERE stage='punch'").first()).attempts,0,'Provider failure refunds the attempt');
- fail=false;await (await post()).text();const priorCalls=calls;
+ fail=false;await (await post()).text();
+ assert.equal((await post()).status,200,'Testing must continue beyond the old three-image limit');
+ await db.prepare("UPDATE sprite_image_limits SET attempts=49 WHERE stage='fullbody'").run();
+ response=await post();assert.equal(response.status,200);await response.text();
+ const priorCalls=calls;
  assert.equal((await post()).status,429);assert.equal(calls,priorCalls,'Daily limit blocks provider spending');
 } finally {await mf.dispose();}
 const client=await build({entryPoints:['app/sprite-request.ts'],bundle:true,write:false,format:'esm',platform:'browser'});
