@@ -1,0 +1,7 @@
+# NFT artwork to fighter — first playable pass
+
+The lobby's **Turn NFT art into a fighter** action accepts a PNG, JPEG, or WebP up to 3 MB. The image stays in the browser until **Generate with Astra** is pressed. The server sends it to `gpt-6-astra` for a structured visual design; it does not store the upload. A deterministic renderer turns that design into forty 192×192 PNG frames: four each for idle and walk in four directions, and four each for left and right punches. The player can preview and equip the result for wave mode. The design is stored in that browser's local storage and rebuilt after a reload.
+
+Configure the production Site secret `OPENAI_API_KEY` through Sites' environment settings, then deploy a version to apply the new environment revision. Never put the key in source or browser code. The UI detects whether the secret is present and disables generation until it is configured. The endpoint validates MIME and image signatures, limits files to 3 MB, requires a same-origin request, and permits three generation attempts per source IP per day in D1. Generation can incur OpenAI API charges.
+
+This is an artwork-upload prototype. It does **not** verify token ownership, mint an NFT, save a generated character to a player account, or make the fighter available in PvP. Those need wallet signature/chain verification, durable asset storage, moderation and provenance rules, and a separate multiplayer asset-loading contract.

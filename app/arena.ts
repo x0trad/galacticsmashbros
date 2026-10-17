@@ -1,9 +1,9 @@
 import type { Movement } from './joystick';
 export const W=1100,H=660;
-export type Dog='green'|'grey'|'purple'|'smg'|'taiyu';
+export type Dog='green'|'grey'|'purple'|'smg'|'taiyu'|'custom';
 export const characters:Dog[]=['green','grey','purple','smg','taiyu'];
-export const characterNames:Record<Dog,string>={green:'GREEN',grey:'GREY',purple:'PURPLE',smg:'SMG',taiyu:'TAIYU'};
-export const characterLabel=(c:Dog)=>c==='smg'?'SMG monkey':c==='taiyu'?'Taiyu robot':`${c} space dog`;
+export const characterNames:Record<Dog,string>={green:'GREEN',grey:'GREY',purple:'PURPLE',smg:'SMG',taiyu:'TAIYU',custom:'CUSTOM'};
+export const characterLabel=(c:Dog)=>c==='smg'?'SMG monkey':c==='taiyu'?'Taiyu robot':c==='custom'?'custom fighter':`${c} space dog`;
 export type Actor={x:number;y:number;dir:string;color:Dog;hp:number;max:number;vx:number;vy:number;hurt:number;attack:number;moving:boolean;spawn:number;shooter?:boolean;fireTimer?:number;aimTimer?:number;aimX?:number;aimY?:number};
 export type Boost='fury'|'haste'|'shield';
 export type PowerId=Boost|'barricade'|'super';
