@@ -13,8 +13,8 @@ const mf=new Miniflare({modules:true,script:bundle.outputFiles[0].text,compatibi
 }});
 const db=await mf.getD1Database('DB');
 await db.exec(readFileSync('drizzle/0002_unique_the_initiative.sql','utf8').replace(/\n/g,' '));
-async function post(stage='fullbody',approved=false,origin='https://game.test',bytes=fixture){
- const form=new FormData();form.set('stage',stage);form.set('artwork',new Blob([bytes],{type:'image/png'}),'ref.png');if(approved)form.set('approved','true');
+async function post(stage='fullbody',approved=false,origin='https://game.test',bytes=fixture,style='normal'){
+ const form=new FormData();form.set('style',style);form.set('stage',stage);form.set('artwork',new Blob([bytes],{type:'image/png'}),'ref.png');if(approved)form.set('approved','true');
  const request=new Request('https://game.test/api/sprite',{method:'POST',headers:{origin},body:form});
  return mf.dispatchFetch(request.url,{method:'POST',headers:Object.fromEntries(request.headers),body:await request.arrayBuffer()});
 }
@@ -23,17 +23,23 @@ try {
  assert.equal((await post('walk')).status,400);
  assert.equal((await post('unknown')).status,400);
  assert.equal((await post('fullbody',false,undefined,Buffer.alloc(150))).status,400);
+ assert.equal((await post('fullbody',false,undefined,fixture,'unknown')).status,400);
  assert.equal(calls,0,'Invalid input must not call the provider');
  let response=await post();const events=(await response.text()).trim().split('\n').map(line=>JSON.parse(line));
  assert.equal(response.status,200,JSON.stringify(events));assert.equal(events.at(-1).type,'result');
  assert.equal(requestBody.model,'gpt-6-astra');assert.equal(requestBody.tools[0].type,'image_generation');
  assert.equal(requestBody.text,undefined,'The old preset JSON generator must not run');
- response=await post('walk',true);await response.text();
+ assert.match(requestBody.input[0].content[0].text,/NORMAL VERSION/);
+ response=await post('fullbody',false,undefined,fixture,'chibi');await response.text();
+ assert.match(requestBody.input[0].content[0].text,/CHIBI VERSION/);
+ assert.doesNotMatch(requestBody.input[0].content[0].text,/NORMAL VERSION/);
+ response=await post('walk',true,undefined,fixture,'chibi');await response.text();
  assert.equal(requestBody.input[0].content[1].image_url,'data:image/png;base64,'+fixture.toString('base64'),'Animation must receive the reviewed full-body image bytes');
  assert.match(requestBody.input[0].content[0].text,/APPROVED FULL-BODY/);
+ assert.match(requestBody.input[0].content[0].text,/chosen CHIBI style/);
  fail=true;response=await post('punch',true);assert.match(await response.text(),/billing is active/);
  assert.equal((await db.prepare("SELECT attempts FROM sprite_image_limits WHERE stage='punch'").first()).attempts,0,'Provider failure refunds the attempt');
- fail=false;await (await post()).text();await (await post()).text();const priorCalls=calls;
+ fail=false;await (await post()).text();const priorCalls=calls;
  assert.equal((await post()).status,429);assert.equal(calls,priorCalls,'Daily limit blocks provider spending');
 } finally {await mf.dispose();}
 const client=await build({entryPoints:['app/sprite-request.ts'],bundle:true,write:false,format:'esm',platform:'browser'});
@@ -45,8 +51,10 @@ assert.equal(await readGeneration(new Response(stream)),png,'Stream parser must 
 await assert.rejects(()=>readGeneration(new Response('{"type":"progress"}\n')),/connection ended/);
 await assert.rejects(()=>readGeneration(new Response('{"type":"error","error":"Try later"}\n')),/Try later/);
 const format=ts.transpileModule(readFileSync('app/sprite-format.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
-const {frameKeys,parseFighter}=await import('data:text/javascript;base64,'+Buffer.from(format).toString('base64'));
+const {frameKeys,parseFighter,parseDraft}=await import('data:text/javascript;base64,'+Buffer.from(format).toString('base64'));
+assert.equal(parseDraft({version:2,fullBody:png,sheets:{},style:'chibi'}).style,'chibi');
+assert.equal(parseDraft({version:2,fullBody:png,sheets:{}}).style,'normal','Older drafts stay compatible');
 assert.equal(frameKeys.length,40);assert.equal(new Set(frameKeys).size,40);
 assert.throws(()=>parseFighter({version:2,name:'Test',fullBody:png,frames:{}}),/missing animation/);
 assert.equal(Object.keys(parseFighter({version:2,name:'Test',fullBody:png,frames:Object.fromEntries(frameKeys.map(k=>[k,png]))}).frames).length,40);
-console.log('PASS: approval gate, image validation, original reference bytes, image tool use, rate limit, failure refund, streaming boundaries, truncated response, and complete 40-frame manifest.');
+console.log('PASS: normal/chibi prompts, style validation and restoration, approval gate, image validation, original reference bytes, image tool use, rate limit, failure refund, streaming boundaries, truncated response, and complete 40-frame manifest.');

@@ -18,3 +18,5 @@ This is an artwork-upload prototype: no NFT ownership verification, minting, acc
 Validation: `node tests/sprite-creator.test.mjs` exercises the Worker route against a mocked image provider and real D1 test database, including validation, review gate, supplied image bytes, rate limits/refunds, streaming boundaries, and the complete frame manifest. Type checking and production build run before publication.
 
 API reference: https://developers.openai.com/api/docs/guides/tools-image-generation
+
+Players can choose **Normal** (natural body proportions) or **Chibi** (large head and compact body) before full-body generation. The choice is saved in the draft and passed to animation generation. Changing it on an existing design requires redrawing the full body; the reviewed image remains the canonical animation reference. Older drafts default to Normal.

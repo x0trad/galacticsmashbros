@@ -1,4 +1,4 @@
-import {isPngData, type GenerationStage} from './sprite-format';
+import {isPngData, type GenerationStage, type CharacterStyle} from './sprite-format';
 
 export async function readGeneration(response: Response): Promise<string> {
   if (!response.ok) {const result = await response.json().catch(() => null) as {error?: string} | null; throw new Error(result?.error || 'The image service is unavailable. Please retry.');}
@@ -25,9 +25,9 @@ export async function readGeneration(response: Response): Promise<string> {
     return image;
   } finally {await reader.cancel().catch(() => {}); reader.releaseLock();}
 }
-export async function generateImage(stage: GenerationStage, artwork: Blob, refinement: string, signal: AbortSignal) {
+export async function generateImage(stage: GenerationStage, artwork: Blob, refinement: string, signal: AbortSignal, style: CharacterStyle = 'normal') {
   const form = new FormData();
-  form.set('stage', stage); form.set('artwork', artwork, 'reference.png'); form.set('refinement', refinement);
+  form.set('style', style); form.set('stage', stage); form.set('artwork', artwork, 'reference.png'); form.set('refinement', refinement);
   if (stage !== 'fullbody') form.set('approved', 'true');
   return readGeneration(await fetch('/api/sprite', {method: 'POST', body: form, signal}));
 }

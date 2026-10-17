@@ -14,6 +14,8 @@ export async function POST(request: Request) {
   if (Number(request.headers.get('content-length') || 0) > 13_000_000) return json({error: 'This image is too large. Choose one under 12 MB.'}, 413);
   let form: FormData;
   try {form = await request.formData();} catch {return json({error: 'Could not read the upload.'}, 400);}
+  const style = form.get('style') || 'normal';
+  if (style !== 'normal' && style !== 'chibi') return json({error: 'Choose Normal or Chibi character style.'}, 400);
   const stage = form.get('stage') as GenerationStage;
   if (!stages.has(stage)) return json({error: 'Choose the full-body or animation step.'}, 400);
   if (stage !== 'fullbody' && form.get('approved') !== 'true') return json({error: 'Approve your full-body design before generating sprites.'}, 400);
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
       const heartbeat = setInterval(() => send({type: 'progress', stage}), 10_000);
       const timeout = setTimeout(() => abort.abort(), 240_000);
       try {
-        const response = await fetch('https://api.openai.com/v1/responses', {method: 'POST', headers: {Authorization: `Bearer ${key}`, 'Content-Type': 'application/json'}, body: JSON.stringify(generationRequest(stage, input, refinement, identity)), signal: abort.signal});
+        const response = await fetch('https://api.openai.com/v1/responses', {method: 'POST', headers: {Authorization: `Bearer ${key}`, 'Content-Type': 'application/json'}, body: JSON.stringify(generationRequest(stage, input, refinement, identity, style)), signal: abort.signal});
         const result = await response.json() as {error?: {code?: string}; output?: Array<{type?: string; result?: string; status?: string}>};
         if (!response.ok) throw new Error(generationError(response.status, result.error?.code));
         const image = result.output?.find(item => item.type === 'image_generation_call' && item.result)?.result;
