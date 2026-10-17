@@ -29,6 +29,20 @@ export async function loadCustomSpriteFrames(fighter: GeneratedFighter) {
   return new Map(await Promise.all(Object.entries(data.frames).map(async ([key, src]) => [`custom-${key}`, await loadImage(src)] as const)));
 }
 
+// Some generated sheets reverse their side-view rows. Correct the mapping
+// without mirroring the artwork (which would also mirror asymmetric armour).
+export async function swapSpriteDirections(src: string, kind: typeof animationKinds[number]) {
+  const image = await loadImage(src), directions = animationDirections(kind);
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+  const ctx = canvas.getContext('2d')!, rowHeight = canvas.height / directions.length;
+  directions.forEach((direction, row) => {
+    const source = direction === 'left' ? directions.indexOf('right') : direction === 'right' ? directions.indexOf('left') : row;
+    ctx.drawImage(image, 0, source * rowHeight, canvas.width, rowHeight, 0, row * rowHeight, canvas.width, rowHeight);
+  });
+  return canvas.toDataURL('image/png');
+}
+
 export async function sliceSpriteSheet(src: string, kind: typeof animationKinds[number]) {
   const image = await loadImage(src);
   const rows = animationDirections(kind);
