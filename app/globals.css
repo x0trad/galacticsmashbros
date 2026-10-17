@@ -328,3 +328,32 @@ html.game-active,html.game-active body{overflow:hidden;overscroll-behavior:none}
 .creator-result .creator-primary{width:100%;margin-top:12px;font-size:15px}
 .creator-error{padding:10px 14px;border:2px solid #d4a38a;border-radius:10px;background:#fff0df;color:#7a372d;font:700 14px 'Baloo 2',Arial,sans-serif}
 @media(max-width:650px){.arcade-main .creator-entry{font-size:14px;flex-wrap:wrap;line-height:1.2}.creator-dialog{width:calc(100% - 16px);max-height:calc(100dvh - 16px);padding:18px;border-radius:18px}.creator-grid{grid-template-columns:1fr;gap:12px}.creator-art{height:150px}.creator-placeholder,.creator-poses{min-height:130px}.creator-poses img{max-width:98px}.creator-actions>*{flex:1 1 100%}}
+.creator-steps{display:flex;gap:10px;list-style:none;padding:0;margin:22px 0}
+.creator-steps li{flex:1;display:flex;align-items:center;gap:8px;padding:10px;border:2px solid #c5d5c9;border-radius:12px;font:800 15px 'Baloo 2',Arial,sans-serif;color:#638079;background:#e6eee1}
+.creator-steps li[aria-current=step]{background:#dbf7ae;border-color:#96ba6c;color:#214b42}
+.creator-steps b{display:grid;place-items:center;flex-shrink:0;width:27px;height:27px;border-radius:50%;background:#fffdf5}
+.creator-source>.creator-label{margin-bottom:10px}
+.creator-source>.creator-primary{width:100%;margin-top:16px}
+.creator-refinement{margin-top:14px}
+.creator-refinement textarea{display:block;width:100%;min-height:78px;margin-top:5px;padding:10px 12px;border:2px solid #aac8bd;border-radius:9px;resize:vertical;background:#fff;color:#193b43;font:600 15px/1.3 'Baloo 2',Arial,sans-serif}
+.checkerboard{background-color:#e7eee6;background-image:linear-gradient(45deg,#d3dfd7 25%,transparent 25%),linear-gradient(-45deg,#d3dfd7 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d3dfd7 75%),linear-gradient(-45deg,transparent 75%,#d3dfd7 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+.creator-body{aspect-ratio:1;margin-top:14px;border:2px solid #b4cabd;border-radius:14px;overflow:hidden}
+.creator-body img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+.creator-review{font:700 15px/1.4 'Baloo 2',Arial,sans-serif;color:#54736e}
+.creator-download{display:inline-block;padding:6px 0;background:transparent;border:0;color:#276958;font:800 14px 'Baloo 2',Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.creator-download:disabled{opacity:.45;cursor:default}
+.creator-silhouette{font-size:88px;color:#abc8b4}
+.creator-progress{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #aecb95;border-radius:14px;background:#e8f5d5}
+.creator-progress>div{flex:1}.creator-progress strong,.creator-progress span{display:block}
+.creator-progress strong{font:800 18px 'Baloo 2',Arial,sans-serif}.creator-progress div>span{font:600 14px 'Baloo 2',Arial,sans-serif;color:#5b7767}
+.creator-spinner{width:26px;height:26px;flex-shrink:0;border:4px solid #b5d39b;border-top-color:#416f50;border-radius:50%;animation:creator-spin 1s linear infinite}
+@keyframes creator-spin{to{transform:rotate(360deg)}}
+.creator-animation-section{margin-top:28px;padding-top:24px;border-top:2px solid #c7d9cb}
+.creator-animation-heading h3{margin:4px 0;font:800 30px/1.15 'Baloo 2',Arial,sans-serif}.creator-animation-heading p{margin:4px 0;color:#5b756b;font:700 14px 'Baloo 2',Arial,sans-serif}
+.creator-animation-group{margin-top:20px;padding:14px;border:2px solid #bed3c8;border-radius:14px;background:#fffdf5}
+.creator-animation-title{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.creator-animation-title h4{margin:0;font:800 17px 'Baloo 2',Arial,sans-serif}.creator-animation-title>span{font:800 12px 'Baloo 2',Arial,sans-serif;color:#6b8978}.creator-animation-title button{margin-left:auto}
+.creator-animation-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.creator-animation{text-align:center;min-width:0}.creator-animation>div{aspect-ratio:1;border:1px solid #b6cdbf;border-radius:10px;display:grid;place-items:center;overflow:hidden}.creator-animation img{width:100%;height:100%;image-rendering:pixelated}.creator-animation>span{font:800 12px 'Baloo 2',Arial,sans-serif;color:#536f65}
+.creator-dialog button:focus-visible,.creator-dialog a:focus-visible{outline:3px solid #238173;outline-offset:3px}
+@media(max-width:650px){.creator-steps{gap:5px}.creator-steps li{flex-direction:column;gap:4px;padding:8px 4px;font-size:12px;text-align:center}.creator-body{max-height:360px}.creator-animation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.creator-progress{flex-wrap:wrap}.creator-progress .creator-secondary{min-height:38px;padding:4px 12px}.creator-animation-heading h3{font-size:25px}}
+@media(prefers-reduced-motion:reduce){.creator-spinner{animation:none}}

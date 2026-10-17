@@ -15,6 +15,13 @@
       "when": 1788964428819,
       "tag": "0001_uneven_romulus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792257359001,
+      "tag": "0002_unique_the_initiative",
+      "breakpoints": true
     }
   ]
 }
