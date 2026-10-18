@@ -10,7 +10,7 @@ export type ForgeDocument = {
 export function parsePixelSource(value: unknown): PixelSource {
   const d = value as PixelSource;
   if (!d || !Array.isArray(d.palette) || d.palette.length < 2 || d.palette.length > 32 || d.palette.some(c => typeof c !== 'string' || !/^#[0-9a-f]{6}$/i.test(c))) throw new Error('Sprite Forge needs a palette of 2–32 colours.');
-  if (!Array.isArray(d.rows) || !d.rows.length || d.rows.length > 80 || d.rows.some(r => typeof r !== 'string' || r.length > 96)) throw new Error('Sprite Forge needs bounded pixel rows.');
+  if (!Array.isArray(d.rows) || !d.rows.length || d.rows.length > 48 || d.rows.some(r => typeof r !== 'string' || r.length > 56)) throw new Error('Sprite Forge needs bounded pixel rows.');
   // Match the existing MCP set_frame tool: pad or trim to the canvas size.
   const rows = Array.from({length:48},(_,y)=>(d.rows[y]||'').padEnd(48,'.').slice(0,48));
   if (rows.some(r=>[...r].some(c=>c!=='.'&&(alphabet.indexOf(c)<0||alphabet.indexOf(c)>=d.palette.length)))) throw new Error('The sprite contains pixels outside its palette.');
@@ -29,4 +29,13 @@ export function parseForgeDocument(value: unknown): ForgeDocument {
   }
   for(const direction of directions)if(!names.has(`idle-${direction}`))throw new Error('The pixel character is missing a facing direction.');
   return d;
+}
+
+// Structural gate only: appearance and likeness still need a person's review.
+export function validateMasterCoverage(source:PixelSource){
+  const pixels=source.rows.flatMap((row,y)=>Array.from(row,(c,x)=>({c,x,y}))).filter(p=>p.c!=='.');
+  const xs=pixels.map(p=>p.x),ys=pixels.map(p=>p.y);
+  const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
+  if (left<1||right>46||top<1||bottom>46||bottom-top+1<40||right-left+1<16)
+    throw new Error('The pixel character does not match the Galactic Dog frame scale. Please redraw the full body.');
 }

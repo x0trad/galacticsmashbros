@@ -19,3 +19,9 @@ The existing production `OPENAI_API_KEY` secret is used for Astra function calli
 Drafts store the original pixel source, Sprite Forge document and completed PNG sheets in IndexedDB. Downloads include the reviewed full body, combined sprite sheet and Sprite Forge project. Old generated designs require a fresh Chibi full body; saved fighters are preserved.
 
 Validation: `node tests/sprite-creator.test.mjs` tests the Worker with a mocked function-calling provider and real D1 database: Chibi-only rejection, command execution at every stage, absence of image generation, authored poses, exact 3× export, binary alpha, pixel validation, streaming, draft restoration and rate limits/refunds. Type checking and production build run before publication.
+
+## Galactic Dog quality reference (validation in progress)
+
+The original Galactic Dog is a 48×48 logical sprite enlarged 4×, not a 64×64 sprite enlarged 3×. The isolated `sprite-quality` endpoint tests a corrected pipeline before promotion to the creator. It supplies six original Galactic Dog frames as a style reference, the original indexed front frame as a cluster-size example, and the user's artwork as the character identity reference. A second Astra `set_frame` call sees the first rendered draft and redraws it to improve silhouette, material shading and anatomy. Both passes use Sprite Forge; neither invokes image generation.
+
+Target: 192×192 exported frame, 42–45 logical pixels tall, transparent margin, readable limbs and equipment, clean dark contours, clustered material shadows and highlights. Existing Galactic Dog uses about 26–27 opaque colours per frame. Designs should have comparable detail rather than flat placeholder shapes. Idle/walk/punch retain four authored frames per direction, with open-leg punch poses. These visual properties require human review; structural tests are not proof of equivalent art quality.

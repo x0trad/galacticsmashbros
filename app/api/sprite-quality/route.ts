@@ -2,7 +2,7 @@ import {env} from 'cloudflare:workers';
 import {generationError} from '../../sprite-generation';
 import {authorAnimation, renderPixelSheet, renderPixelReference} from '../../sprite-forge-gd/engine';
 import {forgeCommandRequest, forgeRefinementRequest} from '../../sprite-forge-gd/planner';
-import {parsePixelSource, parseForgeDocument, type PixelSource, type ForgeDocument} from '../../sprite-forge-gd/document';
+import {validateMasterCoverage, parsePixelSource, parseForgeDocument, type PixelSource, type ForgeDocument} from '../../sprite-forge-gd/document';
 import {type GenerationStage} from '../../sprite-format';
 
 const json = (body: unknown, status = 200) => Response.json(body, {status, headers: {'Cache-Control': 'no-store'}});
@@ -78,6 +78,7 @@ export async function POST(request: Request) {
           const finish=polished.output?.find(item=>item.type==='function_call'&&item.name==='set_frame');
           if (!finish?.arguments || finish.arguments.length>800_000) throw new Error('Sprite Forge did not complete the finishing pass. Retry this step.');
           authored=parsePixelSource(JSON.parse(finish.arguments));
+          validateMasterCoverage(authored);
           send({type: 'result', stage, image: renderPixelReference(authored), source: authored});
         } else {
           const master = source || {palette: suppliedForge!.palette, rows: suppliedForge!.animations.find(a => a.name === 'idle-down')!.frames[0].rows};

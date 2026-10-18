@@ -22,7 +22,7 @@ ${stage==='idle'?'First author the LEFT, RIGHT and UP base views as exactly 48 s
 Return exactly ${stage==='punch'?8:16} frame commands: four frames numbered 0,1,2,3 for each ${stage==='punch'?'LEFT and RIGHT':'DOWN, LEFT, RIGHT, UP'} direction. Each frame starts from that direction’s unchanged base view (not the previous frame). Supply horizontal pixel patches {x,y,pixels}; '.' erases pixels. Explicitly erase the old limb pixels and draw the new limb pose; preserve head/torso identity. Empty patches are allowed only for a rest pose. At least three distinct poses per direction. These commands run through the same Sprite Forge duplicate/set_frame/draw/export engine as the local MCP. Do not call image generation.
 PALETTE ${palette.map((c,i)=>`${'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'[i]}=${c}`).join(' ')}
 APPROVED PIXEL BASES:\n${bases}`;
-  return {model:'gpt-6-astra',reasoning:{effort:'high'},store:false,max_output_tokens:first?12000:24000,safety_identifier:identityHash,
+  return {model:'gpt-6-astra',reasoning:{effort:'medium'},store:false,max_output_tokens:first?24000:28000,safety_identifier:identityHash,
     tools:[{type:'function',name,description:first?'Sprite Forge set_frame: create the original Chibi pixel character with a palette and indexed rows.':'Sprite Forge command batch: create animations, duplicate base frames, apply authored pixel patches with draw, then export.',strict:true,parameters:first?sourceSchema:animationSchema}],
     tool_choice:{type:'function',name},parallel_tool_calls:false,
     input:[{role:'user',content:[{type:'input_text',text:prompt},{type:'input_image',image_url:image,detail:'high'},{type:'input_text',text:styleExample},{type:'input_image',image_url:reference.panel,detail:'high'}]}]};
