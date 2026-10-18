@@ -37,7 +37,7 @@ export function authorAnimation(source: PixelSource, value: unknown, kind: Anima
       // The equivalent of edit_frames(duplicate), then draw(pixel) for every patch.
       const out: ForgeFrame={rows:[...bases.get(direction)!],duration:1,hitboxes:[]},grid=F.grid(out);
       for(const patch of commands.patches){
-        if(!Number.isInteger(patch.x)||!Number.isInteger(patch.y)||patch.x<0||patch.y<0||patch.y>=64||typeof patch.pixels!=='string'||!patch.pixels.length||patch.x+patch.pixels.length>64||[...patch.pixels].some(c=>c!=='.'&&(alphabet.indexOf(c)<0||alphabet.indexOf(c)>=doc.palette.length)))throw new Error('A Sprite Forge draw command is outside the pixel canvas or palette.');
+        if(!Number.isInteger(patch.x)||!Number.isInteger(patch.y)||patch.x<0||patch.x>=64||patch.y<0||patch.y>=64||typeof patch.pixels!=='string'||!patch.pixels.length||patch.pixels.length>96||[...patch.pixels].some(c=>c!=='.'&&(alphabet.indexOf(c)<0||alphabet.indexOf(c)>=doc.palette.length)))throw new Error('A Sprite Forge draw command is outside the pixel canvas or palette.');
         for(let x=0;x<patch.pixels.length;x++)F.setPx(grid,patch.x+x,patch.y,patch.pixels[x],doc,false);
       }
       F.ungrid(out,grid);out.rows=parsePixelSource({palette:doc.palette,rows:out.rows}).rows;frames.push(out);

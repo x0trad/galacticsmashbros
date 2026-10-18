@@ -62,5 +62,7 @@ await assert.rejects(()=>readGeneration(new Response('{"type":"progress"}\n')),/
 await assert.rejects(()=>readGeneration(new Response('{"type":"error","error":"Try later"}\n')),/Try later/);
 const format=await build({entryPoints:['app/sprite-format.ts'],bundle:true,write:false,format:'esm',platform:'browser'});
 const {parseDraft,frameKeys}=await import('data:text/javascript;base64,'+Buffer.from(format.outputFiles[0].text).toString('base64'));
+const padded=parseDraft({version:2,style:'chibi',fullBody:full.image,source:{palette:source.palette,rows:source.rows.slice(0,63).map(r=>r+'.')},sheets:{}}).source;
+assert.equal(padded.rows.length,64);assert.ok(padded.rows.every(r=>r.length===64),'Match MCP set_frame pad/trim semantics');
 assert.equal(frameKeys.length,40);assert.deepEqual(parseDraft({version:2,name:'Test',style:'chibi',fullBody:full.image,source,sheets:{}}).source,source);
 console.log('PASS: Chibi-only gate, Sprite Forge function commands for every stage, no image generation, authored animation poses, exact pixel export, draft restoration, validation, rate limit/refunds and streaming.');

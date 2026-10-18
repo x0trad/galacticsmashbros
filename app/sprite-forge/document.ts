@@ -10,8 +10,9 @@ export type ForgeDocument = {
 export function parsePixelSource(value: unknown): PixelSource {
   const d = value as PixelSource;
   if (!d || !Array.isArray(d.palette) || d.palette.length < 2 || d.palette.length > 32 || d.palette.some(c => typeof c !== 'string' || !/^#[0-9a-f]{6}$/i.test(c))) throw new Error('Sprite Forge needs a palette of 2–32 colours.');
-  if (!Array.isArray(d.rows) || d.rows.length !== 64 || d.rows.some(r => typeof r !== 'string' || r.length > 64)) throw new Error('Sprite Forge needs 64 pixel rows.');
-  const rows = d.rows.map(r=>r.padEnd(64,'.'));
+  if (!Array.isArray(d.rows) || !d.rows.length || d.rows.length > 80 || d.rows.some(r => typeof r !== 'string' || r.length > 96)) throw new Error('Sprite Forge needs bounded pixel rows.');
+  // Match the existing MCP set_frame tool: pad or trim to the canvas size.
+  const rows = Array.from({length:64},(_,y)=>(d.rows[y]||'').padEnd(64,'.').slice(0,64));
   if (rows.some(r=>[...r].some(c=>c!=='.'&&(alphabet.indexOf(c)<0||alphabet.indexOf(c)>=d.palette.length)))) throw new Error('The sprite contains pixels outside its palette.');
   const ink=rows.join('').replaceAll('.','').length;
   if(ink<100||ink>3200)throw new Error('The sprite has an empty frame or no transparent padding.');
