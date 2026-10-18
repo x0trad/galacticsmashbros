@@ -1,0 +1,64 @@
+{
+ "frames": {
+  "idle_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "duration": 125,
+   "hitboxes": []
+  }
+ },
+ "meta": {
+  "app": "Sprite Forge",
+  "format": "sprite-forge/1",
+  "image": "bucket-cat-idle-v1.png",
+  "size": {
+   "w": 64,
+   "h": 64
+  },
+  "frameSize": {
+   "w": 64,
+   "h": 64
+  },
+  "frameTags": [
+   {
+    "name": "idle",
+    "from": 0,
+    "to": 0,
+    "fps": 8,
+    "loop": true,
+    "row": 0,
+    "direction": "forward"
+   }
+  ],
+  "palette": [
+   "#260b3c",
+   "#45204f",
+   "#713155",
+   "#aa4c51",
+   "#d97529",
+   "#f2942c",
+   "#ffac39",
+   "#ffca72",
+   "#fff6dc",
+   "#e4d9ce",
+   "#b8a8bb",
+   "#627f73",
+   "#315e58",
+   "#417969",
+   "#5b9d82",
+   "#81b59a",
+   "#afceb0",
+   "#a82663",
+   "#dc397a",
+   "#f65394",
+   "#ff87b6",
+   "#3b364f",
+   "#57536c",
+   "#8a8496"
+  ]
+ }
+}
