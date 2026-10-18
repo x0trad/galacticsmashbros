@@ -1,15 +1,15 @@
 import {env} from 'cloudflare:workers';
 import {generationError} from '../../sprite-generation';
 import {authorAnimation, renderPixelSheet, renderPixelReference} from '../../sprite-forge/engine';
-import {forgeCommandRequest} from '../../sprite-forge/planner';
-import {parsePixelSource, parseForgeDocument, type PixelSource, type ForgeDocument} from '../../sprite-forge/document';
+import {forgeCommandRequest, forgeRefinementRequest} from '../../sprite-forge/planner';
+import {validateMasterCoverage, parsePixelSource, parseForgeDocument, type PixelSource, type ForgeDocument} from '../../sprite-forge/document';
 import {type GenerationStage} from '../../sprite-format';
 
 const json = (body: unknown, status = 200) => Response.json(body, {status, headers: {'Cache-Control': 'no-store'}});
 const dailyStageLimit = 50;
 const stages = new Set(['fullbody', 'idle', 'walk', 'punch']);
 const runtime = () => env as unknown as {OPENAI_API_KEY?: string; DB?: D1Database};
-export function GET() {return json({available: Boolean(runtime().OPENAI_API_KEY), pipeline: 'chibi-sprite-forge-commands', sprite_engine: 'sprite-forge-author-v2', styles: ['chibi']});}
+export function GET() {return json({available: Boolean(runtime().OPENAI_API_KEY), pipeline: 'chibi-sprite-forge-commands', sprite_engine: 'sprite-forge-gd-v3', styles: ['chibi']});}
 
 export async function POST(request: Request) {
   if (request.headers.get('origin') !== new URL(request.url).origin) return json({error: 'Use the creator from the game site.'}, 403);
@@ -71,7 +71,14 @@ export async function POST(request: Request) {
         try {if (!call?.arguments || call.arguments.length > 800_000) throw new Error(); commands = JSON.parse(call.arguments);}
         catch {throw new Error('Sprite Forge did not finish the pixel drawing commands. Retry this step.');}
         if (stage === 'fullbody') {
-          const authored = parsePixelSource(commands);
+          let authored = parsePixelSource(commands);
+          const polish = await fetch('https://api.openai.com/v1/responses', {method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify(forgeRefinementRequest(input,renderPixelReference(authored),authored,identity,refinement)),signal:abort.signal});
+          const polished = await polish.json() as typeof result;
+          if (!polish.ok) throw new Error(generationError(polish.status,polished.error?.code));
+          const finish=polished.output?.find(item=>item.type==='function_call'&&item.name==='set_frame');
+          if (!finish?.arguments || finish.arguments.length>800_000) throw new Error('Sprite Forge did not complete the finishing pass. Retry this step.');
+          authored=parsePixelSource(JSON.parse(finish.arguments));
+          validateMasterCoverage(authored);
           send({type: 'result', stage, image: renderPixelReference(authored), source: authored});
         } else {
           const master = source || {palette: suppliedForge!.palette, rows: suppliedForge!.animations.find(a => a.name === 'idle-down')!.frames[0].rows};

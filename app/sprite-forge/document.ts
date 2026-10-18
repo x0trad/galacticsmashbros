@@ -3,24 +3,24 @@ export const alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRS
 export type PixelSource = {palette: string[]; rows: string[]};
 export type ForgeFrame = {rows: string[]; duration: number; hitboxes: Array<{kind: 'hurt' | 'hit'; x: number; y: number; w: number; h: number}>};
 export type ForgeDocument = {
-  format: 'sprite-forge/1'; id: string; name: string; width: 64; height: 64; palette: string[];
+  format: 'sprite-forge/1'; id: string; name: string; width: 48; height: 48; palette: string[];
   animations: Array<{name: string; fps: number; loop: boolean; frames: ForgeFrame[]}>;
-  gsb: {engine: 'sprite-forge-author-v2'; style: 'chibi'};
+  gsb: {engine: 'sprite-forge-gd-v3'; style: 'chibi'};
 };
 export function parsePixelSource(value: unknown): PixelSource {
   const d = value as PixelSource;
   if (!d || !Array.isArray(d.palette) || d.palette.length < 2 || d.palette.length > 32 || d.palette.some(c => typeof c !== 'string' || !/^#[0-9a-f]{6}$/i.test(c))) throw new Error('Sprite Forge needs a palette of 2–32 colours.');
-  if (!Array.isArray(d.rows) || !d.rows.length || d.rows.length > 80 || d.rows.some(r => typeof r !== 'string' || r.length > 96)) throw new Error('Sprite Forge needs bounded pixel rows.');
+  if (!Array.isArray(d.rows) || !d.rows.length || d.rows.length > 48 || d.rows.some(r => typeof r !== 'string' || r.length > 56)) throw new Error('Sprite Forge needs bounded pixel rows.');
   // Match the existing MCP set_frame tool: pad or trim to the canvas size.
-  const rows = Array.from({length:64},(_,y)=>(d.rows[y]||'').padEnd(64,'.').slice(0,64));
+  const rows = Array.from({length:48},(_,y)=>(d.rows[y]||'').padEnd(48,'.').slice(0,48));
   if (rows.some(r=>[...r].some(c=>c!=='.'&&(alphabet.indexOf(c)<0||alphabet.indexOf(c)>=d.palette.length)))) throw new Error('The sprite contains pixels outside its palette.');
   const ink=rows.join('').replaceAll('.','').length;
-  if(ink<100||ink>3200)throw new Error('The sprite has an empty frame or no transparent padding.');
+  if(ink<100||ink>2100)throw new Error('The sprite has an empty frame or no transparent padding.');
   return {palette:d.palette.map(c=>c.toLowerCase()),rows};
 }
 export function parseForgeDocument(value: unknown): ForgeDocument {
   const d=value as ForgeDocument;
-  if(!d||d.format!=='sprite-forge/1'||d.width!==64||d.height!==64||d.gsb?.engine!=='sprite-forge-author-v2'||d.gsb?.style!=='chibi'||!Array.isArray(d.animations)||d.animations.length>10)throw new Error('Generate a new Chibi character through Sprite Forge first.');
+  if(!d||d.format!=='sprite-forge/1'||d.width!==48||d.height!==48||d.gsb?.engine!=='sprite-forge-gd-v3'||d.gsb?.style!=='chibi'||!Array.isArray(d.animations)||d.animations.length>10)throw new Error('Generate a new Chibi character through Sprite Forge first.');
   const names=new Set<string>();
   for(const a of d.animations){
     if(!/^(idle|walk)-(down|left|right|up)$|^punch-(left|right)$/.test(a.name)||names.has(a.name)||!Array.isArray(a.frames)||a.frames.length!==4)throw new Error('The Sprite Forge animation layout is invalid.');
@@ -29,4 +29,13 @@ export function parseForgeDocument(value: unknown): ForgeDocument {
   }
   for(const direction of directions)if(!names.has(`idle-${direction}`))throw new Error('The pixel character is missing a facing direction.');
   return d;
+}
+
+// Structural gate only: appearance and likeness still need a person's review.
+export function validateMasterCoverage(source:PixelSource){
+  const pixels=source.rows.flatMap((row,y)=>Array.from(row,(c,x)=>({c,x,y}))).filter(p=>p.c!=='.');
+  const xs=pixels.map(p=>p.x),ys=pixels.map(p=>p.y);
+  const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
+  if (left<1||right>46||top<1||bottom>46||bottom-top+1<40||right-left+1<16)
+    throw new Error('The pixel character does not match the Galactic Dog frame scale. Please redraw the full body.');
 }
