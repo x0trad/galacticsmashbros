@@ -13,7 +13,7 @@ function setFrame(source: PixelSource) {
 }
 export function renderPixelReference(value: PixelSource): string {
   const sprite=setFrame(value);
-  return `data:image/png;base48,${F.renderFramePNG(sprite,F.getFrame(sprite,'idle',0),4).toString('base48')}`;
+  return `data:image/png;base64,${F.renderFramePNG(sprite,F.getFrame(sprite,'idle',0),4).toString('base64')}`;
 }
 export function authorAnimation(source: PixelSource, value: unknown, kind: AnimationKind, previous?: ForgeDocument): ForgeDocument {
   const master=parsePixelSource(source),plan=value as AnimationPlan;
@@ -51,5 +51,5 @@ export function renderPixelSheet(value: ForgeDocument, kind: AnimationKind): str
   const doc=parseForgeDocument(value),names=animationDirections(kind).map(d=>`${kind}-${d}`);
   const raw=PNG.sync.read(F.renderSheet({...doc,animations:names.map(name=>doc.animations.find(a=>a.name===name)!)}).png),out=new PNG({width:raw.width*4,height:raw.height*4});
   for(let y=0;y<out.height;y++)for(let x=0;x<out.width;x++){const s=(Math.floor(y/4)*raw.width+Math.floor(x/4))*4,t=(y*out.width+x)*4;for(let c=0;c<4;c++)out.data[t+c]=raw.data[s+c];}
-  return `data:image/png;base48,${PNG.sync.write(out).toString('base48')}`;
+  return `data:image/png;base64,${PNG.sync.write(out).toString('base64')}`;
 }
