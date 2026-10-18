@@ -1,0 +1,213 @@
+{
+ "frames": {
+  "idle-down_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "idle-down_1": {
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "idle-down_2": {
+   "frame": {
+    "x": 384,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "idle-down_3": {
+   "frame": {
+    "x": 576,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "walk-down_0": {
+   "frame": {
+    "x": 0,
+    "y": 192,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  },
+  "walk-down_1": {
+   "frame": {
+    "x": 192,
+    "y": 192,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  },
+  "walk-down_2": {
+   "frame": {
+    "x": 384,
+    "y": 192,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  },
+  "walk-down_3": {
+   "frame": {
+    "x": 576,
+    "y": 192,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  },
+  "idle-up_0": {
+   "frame": {
+    "x": 0,
+    "y": 384,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "idle-up_1": {
+   "frame": {
+    "x": 192,
+    "y": 384,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "idle-up_2": {
+   "frame": {
+    "x": 384,
+    "y": 384,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "idle-up_3": {
+   "frame": {
+    "x": 576,
+    "y": 384,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "walk-up_0": {
+   "frame": {
+    "x": 0,
+    "y": 576,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  },
+  "walk-up_1": {
+   "frame": {
+    "x": 192,
+    "y": 576,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  },
+  "walk-up_2": {
+   "frame": {
+    "x": 384,
+    "y": 576,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  },
+  "walk-up_3": {
+   "frame": {
+    "x": 576,
+    "y": 576,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 125,
+   "hitboxes": []
+  }
+ },
+ "meta": {
+  "image": "robot-set-v1.png",
+  "size": {
+   "w": 768,
+   "h": 768
+  },
+  "animations": {
+   "idle-down": {
+    "fps": 6,
+    "loop": true,
+    "frames": [
+     "idle-down_0",
+     "idle-down_1",
+     "idle-down_2",
+     "idle-down_3"
+    ]
+   },
+   "walk-down": {
+    "fps": 8,
+    "loop": true,
+    "frames": [
+     "walk-down_0",
+     "walk-down_1",
+     "walk-down_2",
+     "walk-down_3"
+    ]
+   },
+   "idle-up": {
+    "fps": 6,
+    "loop": true,
+    "frames": [
+     "idle-up_0",
+     "idle-up_1",
+     "idle-up_2",
+     "idle-up_3"
+    ]
+   },
+   "walk-up": {
+    "fps": 8,
+    "loop": true,
+    "frames": [
+     "walk-up_0",
+     "walk-up_1",
+     "walk-up_2",
+     "walk-up_3"
+    ]
+   }
+  }
+ }
+}
