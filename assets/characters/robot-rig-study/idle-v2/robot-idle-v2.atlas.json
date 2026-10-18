@@ -1,0 +1,63 @@
+{
+ "frames": {
+  "idle-down_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "idle-down_1": {
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "idle-down_2": {
+   "frame": {
+    "x": 384,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  },
+  "idle-down_3": {
+   "frame": {
+    "x": 576,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 167,
+   "hitboxes": []
+  }
+ },
+ "meta": {
+  "image": "robot-idle-v2.png",
+  "size": {
+   "w": 768,
+   "h": 192
+  },
+  "animations": {
+   "idle-down": {
+    "fps": 6,
+    "loop": true,
+    "frames": [
+     "idle-down_0",
+     "idle-down_1",
+     "idle-down_2",
+     "idle-down_3"
+    ]
+   }
+  }
+ }
+}
