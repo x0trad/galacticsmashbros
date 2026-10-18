@@ -14,7 +14,9 @@
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
     "format": "oxfmt",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "sprite:walk": "python3 scripts/animate_sprite.py",
+    "test:sprite-rig": "python3 -m unittest discover -s tests -p test_sprite_rig.py"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
