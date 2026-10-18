@@ -1,0 +1,120 @@
+{
+ "frames": {
+  "idle-down_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 250,
+   "hitboxes": []
+  },
+  "idle-down_1": {
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 250,
+   "hitboxes": []
+  },
+  "idle-down_2": {
+   "frame": {
+    "x": 384,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 250,
+   "hitboxes": []
+  },
+  "idle-down_3": {
+   "frame": {
+    "x": 576,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "duration": 250,
+   "hitboxes": []
+  }
+ },
+ "meta": {
+  "app": "Sprite Forge",
+  "format": "sprite-forge/1",
+  "image": "robot-idle-reactor-study.png",
+  "size": {
+   "w": 768,
+   "h": 192
+  },
+  "frameSize": {
+   "w": 192,
+   "h": 192
+  },
+  "frameTags": [
+   {
+    "name": "idle-down",
+    "from": 0,
+    "to": 3,
+    "fps": 4,
+    "loop": true,
+    "row": 0,
+    "direction": "forward"
+   }
+  ],
+  "palette": [
+   "#151720",
+   "#22242e",
+   "#30333d",
+   "#414752",
+   "#535e6b",
+   "#6c7988",
+   "#8e9dac",
+   "#b5c4d1",
+   "#d8e4eb",
+   "#f5f8f2",
+   "#39364e",
+   "#66627e",
+   "#9c9bb9",
+   "#c7c9e3",
+   "#e5e8fa",
+   "#3c1625",
+   "#5e1e30",
+   "#802337",
+   "#a92c3b",
+   "#ce3b40",
+   "#e45a4d",
+   "#f58b69",
+   "#663921",
+   "#8e5225",
+   "#b67b28",
+   "#dfa32d",
+   "#f5ca42",
+   "#ffe77b",
+   "#fff5c0",
+   "#173e32",
+   "#265d35",
+   "#398a38",
+   "#5ab435",
+   "#88d844",
+   "#b9ef66",
+   "#edffc2",
+   "#144452",
+   "#1b7385",
+   "#32afc6",
+   "#72e3eb",
+   "#c7ffff",
+   "#285292",
+   "#437bc0",
+   "#e6ad78",
+   "#a95251",
+   "#76524d",
+   "#424047",
+   "#797b80",
+   "#b7aaa0",
+   "#e5d6bd"
+  ]
+ }
+}
