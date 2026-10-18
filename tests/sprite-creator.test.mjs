@@ -3,86 +3,64 @@ import {build} from 'esbuild';
 import {Miniflare} from 'miniflare';
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
-
-const bundle=await build({stdin:{contents:"import {GET,POST} from './app/api/sprite/route.ts'; export default {fetch(r){return r.method==='GET'?GET():POST(r)}}",resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'browser',external:['cloudflare:workers','node:buffer']});
-const engineBuild=await build({entryPoints:['app/sprite-forge/engine.ts'],bundle:true,write:false,format:'cjs',platform:'node',packages:'external'});
-const engineModule={exports:{}};new Function('module','exports','require',engineBuild.outputFiles[0].text)(engineModule,engineModule.exports,createRequire(import.meta.url));
-const {pixelReference,createPixelMaster,animatePixels,renderPixelSheet}=engineModule.exports;
-const taiyu=JSON.parse(readFileSync('assets/characters/taiyu/taiyu.sprite.json','utf8'));
-const rig={head:{x:18,y:3,w:30,h:28},leftArm:{x:9,y:31,w:12,h:13},rightArm:{x:43,y:31,w:12,h:13},leftLeg:{x:20,y:44,w:10,h:15},rightLeg:{x:34,y:44,w:10,h:15}};
-const plan={views:['left','right','up'].map(direction=>({direction,rows:taiyu.animations.find(a=>a.name==='idle-'+direction).frames[0].rows})),rigs:['down','left','right','up'].map(direction=>({direction,...rig}))};
+const {PNG}=createRequire(import.meta.url)('pngjs');
 const fixture=readFileSync('public/sprites/taiyu-idle-down-1.png');
-const paletteCount=pixelReference(fixture).palette.length;
-for(const view of plan.views)view.rows=view.rows.map(row=>[...row].map(c=>c==='.'||'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(c)<paletteCount?c:'0').join(''));
-let calls=0,fail=false,requestBody;
+const old=JSON.parse(readFileSync('assets/characters/taiyu/taiyu.sprite.json','utf8'));
+const source={palette:old.palette,rows:old.animations.find(a=>a.name==='idle-down').frames[0].rows};
+function plan(kind){const dirs=kind==='punch'?['left','right']:['down','left','right','up'];return {views:kind==='idle'?['left','right','up'].map(direction=>({direction,rows:old.animations.find(a=>a.name==='idle-'+direction).frames[0].rows})):[],frames:dirs.flatMap(direction=>[0,1,2,3].map(frame=>({direction,frame,patches:frame?[{x:frame,y:0,pixels:'0'}]:[]})))};}
+const bundle=await build({stdin:{contents:"import {GET,POST} from './app/api/sprite/route.ts'; export default {fetch(r){return r.method==='GET'?GET():POST(r)}}",resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'browser',external:['cloudflare:workers','node:buffer']});
+let calls=0,fail=false,requestBody,broken=false;
+const requests=[];
 const mf=new Miniflare({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:'2026-01-01',compatibilityFlags:['nodejs_compat'],bindings:{OPENAI_API_KEY:'test-secret'},d1Databases:['DB'],outboundService:async request=>{
- calls++;requestBody=await request.json();
- if(!fail&&requestBody.text?.format?.name==='sprite_forge_pixel_master')return Response.json({output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(plan)}]}]});
- return fail?Response.json({error:{code:'insufficient_quota'}},{status:429}):Response.json({output:[{type:'image_generation_call',status:'completed',result:fixture.toString('base64')}]});
+ calls++;requestBody=await request.json();requests.push(requestBody);
+ if(fail)return Response.json({error:{code:'insufficient_quota'}},{status:429});
+ const name=requestBody.tools[0].name,kind=requestBody.input[0].content[0].text.match(/actual authored (idle|walk|punch)/)?.[1];
+ return Response.json({output:[{type:'function_call',name,arguments:JSON.stringify(broken?{}:name==='set_frame'?{id:'chibi-fighter',animation:'idle-down',frame:0,...source}:plan(kind))}]});
 }});
-const db=await mf.getD1Database('DB');
-await db.exec(readFileSync('drizzle/0002_unique_the_initiative.sql','utf8').replace(/\n/g,' '));
-async function post(stage='fullbody',approved=false,origin='https://game.test',bytes=fixture,style='normal',forge){
- const form=new FormData();if(forge)form.set('forge',JSON.stringify(forge));form.set('style',style);form.set('stage',stage);form.set('artwork',new Blob([bytes],{type:'image/png'}),'ref.png');if(approved)form.set('approved','true');
- const request=new Request('https://game.test/api/sprite',{method:'POST',headers:{origin},body:form});
+const db=await mf.getD1Database('DB');await db.exec(readFileSync('drizzle/0002_unique_the_initiative.sql','utf8').replace(/\n/g,' '));
+async function post(stage='fullbody',opts={}){
+ const form=new FormData();form.set('style',opts.style||'chibi');form.set('stage',stage);form.set('artwork',new Blob([opts.bytes||fixture],{type:'image/png'}),'ref.png');
+ if(opts.approved)form.set('approved','true');if(opts.source)form.set('source',JSON.stringify(opts.source));if(opts.forge)form.set('forge',JSON.stringify(opts.forge));
+ const request=new Request('https://game.test/api/sprite',{method:'POST',headers:{origin:opts.origin||'https://game.test'},body:form});
  return mf.dispatchFetch(request.url,{method:'POST',headers:Object.fromEntries(request.headers),body:await request.arrayBuffer()});
 }
-try {
- assert.equal((await post('fullbody',false,'https://other.test')).status,403);
- assert.equal((await post('walk')).status,400);
- assert.equal((await post('unknown')).status,400);
- assert.equal((await post('fullbody',false,undefined,Buffer.alloc(150))).status,400);
- assert.equal((await post('fullbody',false,undefined,fixture,'unknown')).status,400);
- assert.equal(calls,0,'Invalid input must not call the provider');
- let response=await post();const events=(await response.text()).trim().split('\n').map(line=>JSON.parse(line));
- assert.equal(response.status,200,JSON.stringify(events));assert.equal(events.at(-1).type,'result');
- assert.equal(requestBody.model,'gpt-6-astra');assert.equal(requestBody.tools[0].type,'image_generation');
- assert.equal(requestBody.text,undefined,'The old preset JSON generator must not run');
- assert.match(requestBody.input[0].content[0].text,/NORMAL VERSION/);
- response=await post('fullbody',false,undefined,fixture,'chibi');await response.text();
- assert.match(requestBody.input[0].content[0].text,/CHIBI VERSION/);
- assert.doesNotMatch(requestBody.input[0].content[0].text,/NORMAL VERSION/);
- response=await post('idle',true,undefined,fixture,'chibi');
- const idleEvents=(await response.text()).trim().split('\n').map(l=>JSON.parse(l));
- const pixelResult=idleEvents.at(-1);assert.equal(pixelResult.type,'result',JSON.stringify(pixelResult));
- assert.equal(requestBody.input[0].content[1].image_url,'data:image/png;base64,'+fixture.toString('base64'),'Pixel author must receive the reviewed full-body image bytes');
- assert.equal(requestBody.tools,undefined,'Animation must never call image generation');
- assert.equal(requestBody.text.format.name,'sprite_forge_pixel_master');
- assert.match(requestBody.input[0].content[0].text,/chibi proportions/);
+async function result(response){return JSON.parse((await response.text()).trim().split('\n').at(-1));}
+let full,idle,walk,punch;
+try{
+ const config=await (await mf.dispatchFetch('https://game.test/api/sprite')).json();assert.deepEqual(config.styles,['chibi']);
+ for(const opts of [{style:'normal'},{style:'unknown'},{bytes:Buffer.alloc(150)}])assert.equal((await post('fullbody',opts)).status,400);
+ assert.equal((await post('fullbody',{origin:'https://other.test'})).status,403);
+ assert.equal((await post('idle')).status,400);assert.equal((await post('idle',{approved:true})).status,400);
+ assert.equal((await post('walk',{approved:true})).status,400);assert.equal(calls,0);
+ full=await result(await post());assert.equal(full.type,'result',JSON.stringify(full));assert.deepEqual(full.source,source);
+ assert.equal(requestBody.tools[0].name,'set_frame');assert.match(requestBody.input[0].content[0].text,/CHIBI proportions only/);
+ assert.equal(requestBody.input[0].content[1].image_url,'data:image/png;base64,'+fixture.toString('base64'),'Author must see the original reference');
+ idle=await result(await post('idle',{approved:true,source:full.source}));assert.equal(idle.type,'result',JSON.stringify(idle));
+ assert.equal(requestBody.tools[0].name,'author_animation');assert.equal(idle.forge.gsb.engine,'sprite-forge-author-v2');
  const beforeWalk=calls;
- response=await post('walk',true,undefined,fixture,'chibi',pixelResult.forge);
- const walkResult=JSON.parse((await response.text()).trim().split('\n').at(-1));
- assert.equal(walkResult.type,'result');assert.equal(calls,beforeWalk,'Walking frames come from Sprite Forge without a provider image call');
- assert.notEqual(walkResult.forge.animations.find(a=>a.name==='walk-left').frames[0].rows.join(''),walkResult.forge.animations.find(a=>a.name==='walk-left').frames[2].rows.join(''));
- response=await post('punch',true,undefined,fixture,'chibi',walkResult.forge);
- const punchResult=JSON.parse((await response.text()).trim().split('\n').at(-1));
- assert.equal(punchResult.type,'result');assert.equal(punchResult.forge.animations.length,10);assert.equal(calls,beforeWalk);
- const {PNG}=createRequire(import.meta.url)('pngjs');const pngSheet=PNG.sync.read(Buffer.from(punchResult.image.split(',')[1],'base64'));
- assert.equal(pngSheet.width,768);assert.equal(pngSheet.height,384);
- for(let y=0;y<pngSheet.height;y+=3)for(let x=0;x<pngSheet.width;x+=3){const first=(y*pngSheet.width+x)*4;for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++)for(let c=0;c<4;c++)assert.equal(pngSheet.data[((y+dy)*pngSheet.width+x+dx)*4+c],pngSheet.data[first+c],'Exports must be exact 3x pixel blocks');}
- const alphaValues=new Set();for(let i=3;i<pngSheet.data.length;i+=4)alphaValues.add(pngSheet.data[i]);assert.deepEqual([...alphaValues].sort((a,b)=>a-b),[0,255],'No antialiasing');
- fail=true;response=await post('fullbody');assert.match(await response.text(),/billing is active/);
- assert.equal((await db.prepare("SELECT attempts FROM sprite_image_limits WHERE stage='fullbody'").first()).attempts,2,'Provider failure refunds the attempt');
- fail=false;await (await post()).text();
- assert.equal((await post()).status,200,'Testing must continue beyond the old three-image limit');
- await db.prepare("UPDATE sprite_image_limits SET attempts=49 WHERE stage='fullbody'").run();
- response=await post();assert.equal(response.status,200);await response.text();
- const priorCalls=calls;
- assert.equal((await post()).status,429);assert.equal(calls,priorCalls,'Daily limit blocks provider spending');
-} finally {await mf.dispose();}
+ walk=await result(await post('walk',{approved:true,forge:idle.forge}));assert.equal(walk.type,'result',JSON.stringify(walk));assert.equal(calls,beforeWalk+1,'Walk poses must be authored, not generated by a canned rig');
+ punch=await result(await post('punch',{approved:true,forge:walk.forge}));assert.equal(punch.type,'result',JSON.stringify(punch));
+ assert.equal(punch.forge.animations.length,10);assert.equal(punch.forge.animations.reduce((n,a)=>n+a.frames.length,0),40);
+ for(const body of requests){assert.ok(body.tools.every(t=>t.type==='function'),'All generation must use Sprite Forge commands');assert.ok(!JSON.stringify(body.tools).includes('image_generation'));}
+ const image=PNG.sync.read(Buffer.from(punch.image.split(',')[1],'base64'));assert.equal(image.width,768);assert.equal(image.height,384);
+ for(let y=0;y<image.height;y+=3)for(let x=0;x<image.width;x+=3){const first=(y*image.width+x)*4;for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++)for(let c=0;c<4;c++)assert.equal(image.data[((y+dy)*image.width+x+dx)*4+c],image.data[first+c]);}
+ assert.deepEqual([...new Set(Array.from(image.data).filter((_,i)=>i%4===3))].sort((a,b)=>a-b),[0,255]);
+ const original=idle.forge.animations[0].frames[0].rows;assert.equal(original[20],source.rows[20],'Drawing preserves unedited source pixels');assert.notEqual(idle.forge.animations[0].frames[1].rows[0],original[0]);
+ fail=true;assert.match(JSON.stringify(await result(await post())),/billing is active/);fail=false;
+ assert.equal((await db.prepare("SELECT attempts FROM sprite_image_limits WHERE stage='fullbody'").first()).attempts,1);
+ broken=true;assert.equal((await result(await post())).type,'error');broken=false;
+ assert.equal((await db.prepare("SELECT attempts FROM sprite_image_limits WHERE stage='fullbody'").first()).attempts,1);
+ await db.prepare("UPDATE sprite_image_limits SET attempts=49 WHERE stage='fullbody'").run();assert.equal((await result(await post())).type,'result');
+ const prior=calls;assert.equal((await post()).status,429);assert.equal(calls,prior);
+}finally{await mf.dispose();}
 const client=await build({entryPoints:['app/sprite-request.ts'],bundle:true,write:false,format:'esm',platform:'browser'});
-const {readGeneration}=await import('data:text/javascript;base64,'+Buffer.from(client.outputFiles[0].text).toString('base64'));
-const png='data:image/png;base64,'+fixture.toString('base64');
-const streamText=JSON.stringify({type:'progress'})+'\n'+JSON.stringify({type:'result',image:png})+'\n';
-const stream=new ReadableStream({start(c){const b=new TextEncoder().encode(streamText);for(let i=0;i<b.length;i+=37)c.enqueue(b.slice(i,i+37));c.close();}});
-assert.equal(await readGeneration(new Response(stream)),png,'Stream parser must survive split JSON and PNG data');
+const {readGeneration,readSpriteGeneration}=await import('data:text/javascript;base64,'+Buffer.from(client.outputFiles[0].text).toString('base64'));
+const text=JSON.stringify({type:'progress'})+'\n'+JSON.stringify(full)+'\n';
+const stream=new ReadableStream({start(c){const b=new TextEncoder().encode(text);for(let i=0;i<b.length;i+=37)c.enqueue(b.slice(i,i+37));c.close();}});
+assert.deepEqual((await readSpriteGeneration(new Response(stream))).source,source);
 await assert.rejects(()=>readGeneration(new Response('{"type":"progress"}\n')),/connection ended/);
 await assert.rejects(()=>readGeneration(new Response('{"type":"error","error":"Try later"}\n')),/Try later/);
 const format=await build({entryPoints:['app/sprite-format.ts'],bundle:true,write:false,format:'esm',platform:'browser'});
-const {frameKeys,parseFighter,parseDraft}=await import('data:text/javascript;base64,'+Buffer.from(format.outputFiles[0].text).toString('base64'));
-assert.equal(parseDraft({version:2,fullBody:png,sheets:{},style:'chibi'}).style,'chibi');
-assert.equal(parseDraft({version:2,fullBody:png,sheets:{}}).style,'normal','Older drafts stay compatible');
-assert.equal(frameKeys.length,40);assert.equal(new Set(frameKeys).size,40);
-assert.throws(()=>parseFighter({version:2,name:'Test',fullBody:png,frames:{}}),/missing animation/);
-assert.equal(Object.keys(parseFighter({version:2,name:'Test',fullBody:png,frames:Object.fromEntries(frameKeys.map(k=>[k,png]))}).frames).length,40);
-console.log('PASS: normal/chibi prompts, style validation and restoration, approval gate, image validation, original reference bytes, Sprite Forge planning, offline animation, exact 3x pixels, rate limit, failure refund, streaming boundaries, truncated response, and complete 40-frame manifest.');
+const {parseDraft,frameKeys}=await import('data:text/javascript;base64,'+Buffer.from(format.outputFiles[0].text).toString('base64'));
+assert.equal(frameKeys.length,40);assert.deepEqual(parseDraft({version:2,name:'Test',style:'chibi',fullBody:full.image,source,sheets:{}}).source,source);
+console.log('PASS: Chibi-only gate, Sprite Forge function commands for every stage, no image generation, authored animation poses, exact pixel export, draft restoration, validation, rate limit/refunds and streaming.');

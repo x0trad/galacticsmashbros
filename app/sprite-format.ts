@@ -1,4 +1,4 @@
-import {parseForgeDocument, type ForgeDocument} from './sprite-forge/document';
+import {parsePixelSource, parseForgeDocument, type PixelSource, type ForgeDocument} from './sprite-forge/document';
 export type CharacterStyle = 'normal' | 'chibi';
 export const animationKinds = ['idle', 'walk', 'punch'] as const;
 export type AnimationKind = typeof animationKinds[number];
@@ -9,7 +9,7 @@ export const animationDirections = (kind: AnimationKind): readonly Direction[] =
 export const frameKey = (kind: AnimationKind, direction: Direction, frame: number) => `${kind}-${direction}-${frame}`;
 export const frameKeys = animationKinds.flatMap(kind => animationDirections(kind).flatMap(direction => [1, 2, 3, 4].map(frame => frameKey(kind, direction, frame))));
 export type SpriteSheets = Partial<Record<AnimationKind, string>>;
-export type SpriteDraft = {version: 2; name: string; fullBody: string; approved: boolean; style?: CharacterStyle; forge?: ForgeDocument; sheets: SpriteSheets};
+export type SpriteDraft = {version: 2; name: string; fullBody: string; approved: boolean; style?: CharacterStyle; forge?: ForgeDocument; source?: PixelSource; sheets: SpriteSheets};
 export type GeneratedFighter = {version: 2; name: string; fullBody: string; frames: Record<string, string>};
 export function cleanCharacterName(value: unknown) {
   return String(value || '').replace(/[^\p{L}\p{N} ._-]/gu, '').trim().slice(0, 24) || 'MY FIGHTER';
@@ -25,7 +25,9 @@ export function parseFighter(value: unknown): GeneratedFighter {
 export function parseDraft(value: unknown): SpriteDraft | null {
   const data = value as SpriteDraft | null;
   if (!data || data.version !== 2 || !isPngData(data.fullBody)) return null;
+  let source: PixelSource | undefined;
+  try {if (data.source) source = parsePixelSource(data.source);} catch {}
   let forge: ForgeDocument | undefined;
   try {if (data.forge) forge = parseForgeDocument(data.forge);} catch {}
-  return {version: 2, name: cleanCharacterName(data.name), fullBody: data.fullBody, forge, approved: data.approved === true, style: data.style === 'chibi' ? 'chibi' : 'normal', sheets: Object.fromEntries(animationKinds.filter(kind => isPngData(data.sheets?.[kind])).map(kind => [kind, data.sheets[kind]]))};
+  return {version: 2, name: cleanCharacterName(data.name), fullBody: data.fullBody, forge, source, approved: data.approved === true, style: data.style === 'chibi' ? 'chibi' : 'normal', sheets: Object.fromEntries(animationKinds.filter(kind => isPngData(data.sheets?.[kind])).map(kind => [kind, data.sheets[kind]]))};
 }

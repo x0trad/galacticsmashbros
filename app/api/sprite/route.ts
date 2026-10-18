@@ -1,16 +1,15 @@
 import {env} from 'cloudflare:workers';
-import {generationRequest, generationError} from '../../sprite-generation';
-import {animatePixels, createPixelMaster, pixelReference, renderPixelSheet, renderPixelReference} from '../../sprite-forge/engine';
-import {Buffer} from 'node:buffer';
-import {pixelPlanRequest} from '../../sprite-forge/planner';
-import {parseForgeDocument, type ForgeDocument} from '../../sprite-forge/document';
+import {generationError} from '../../sprite-generation';
+import {authorAnimation, renderPixelSheet, renderPixelReference} from '../../sprite-forge/engine';
+import {forgeCommandRequest} from '../../sprite-forge/planner';
+import {parsePixelSource, parseForgeDocument, type PixelSource, type ForgeDocument} from '../../sprite-forge/document';
 import {type GenerationStage} from '../../sprite-format';
 
 const json = (body: unknown, status = 200) => Response.json(body, {status, headers: {'Cache-Control': 'no-store'}});
 const dailyStageLimit = 50;
 const stages = new Set(['fullbody', 'idle', 'walk', 'punch']);
 const runtime = () => env as unknown as {OPENAI_API_KEY?: string; DB?: D1Database};
-export function GET() {return json({available: Boolean(runtime().OPENAI_API_KEY), pipeline: 'fullbody-then-sprite-forge', sprite_engine: 'sprite-forge-pixels-v1'});}
+export function GET() {return json({available: Boolean(runtime().OPENAI_API_KEY), pipeline: 'chibi-sprite-forge-commands', sprite_engine: 'sprite-forge-author-v2', styles: ['chibi']});}
 
 export async function POST(request: Request) {
   if (request.headers.get('origin') !== new URL(request.url).origin) return json({error: 'Use the creator from the game site.'}, 403);
@@ -19,13 +18,19 @@ export async function POST(request: Request) {
   if (Number(request.headers.get('content-length') || 0) > 13_000_000) return json({error: 'This image is too large. Choose one under 12 MB.'}, 413);
   let form: FormData;
   try {form = await request.formData();} catch {return json({error: 'Could not read the upload.'}, 400);}
-  const style = form.get('style') || 'normal';
-  if (style !== 'normal' && style !== 'chibi') return json({error: 'Choose Normal or Chibi character style.'}, 400);
+  const style = form.get('style') || 'chibi';
+  if (style !== 'chibi') return json({error: 'The creator is available for Chibi characters only. Refresh the game to continue.'}, 400);
   const stage = form.get('stage') as GenerationStage;
   if (!stages.has(stage)) return json({error: 'Choose the full-body or animation step.'}, 400);
   if (stage !== 'fullbody' && form.get('approved') !== 'true') return json({error: 'Approve your full-body design before generating sprites.'}, 400);
   const file = form.get('artwork');
   if (!(file instanceof File) || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size < 100 || file.size > 12_000_000) return json({error: 'Choose a PNG, JPEG or WebP image under 12 MB.'}, 400);
+  let source: PixelSource | undefined;
+  if (stage === 'idle') {
+    const raw = form.get('source');
+    try {if (typeof raw !== 'string' || raw.length > 20_000) throw new Error(); source = parsePixelSource(JSON.parse(raw));}
+    catch {return json({error: 'Create a new Chibi full body in Sprite Forge before generating animations.'}, 400);}
+  }
   let suppliedForge: ForgeDocument | undefined;
   if (stage === 'walk' || stage === 'punch') {
     const raw = form.get('forge');
@@ -54,30 +59,25 @@ export async function POST(request: Request) {
       const send = (event: unknown) => {if (!canceled) controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'));};
       send({type: 'progress', stage});
       const heartbeat = setInterval(() => send({type: 'progress', stage}), 10_000);
-      const timeout = setTimeout(() => abort.abort(), 240_000);
+      const timeout = setTimeout(() => abort.abort(), 420_000);
       try {
-        if (suppliedForge && (stage === 'walk' || stage === 'punch')) {
-          const forge = animatePixels(suppliedForge, stage);
-          send({type: 'result', stage, image: renderPixelSheet(forge, stage), forge});
-          return;
-        }
-        const reference = stage === 'idle' ? pixelReference(bytes) : null;
-        const body = reference ? pixelPlanRequest(input, reference, style, identity) : generationRequest('fullbody', input, refinement, identity, style);
+        const body = forgeCommandRequest(stage, input, identity, refinement, source, suppliedForge);
         const response = await fetch('https://api.openai.com/v1/responses', {method: 'POST', headers: {Authorization: `Bearer ${key}`, 'Content-Type': 'application/json'}, body: JSON.stringify(body), signal: abort.signal});
-        const result = await response.json() as {error?: {code?: string}; output?: Array<{type?: string; result?: string; status?: string; content?: Array<{type?: string; text?: string}>}>};
+        const result = await response.json() as {error?: {code?: string}; status?: string; output?: Array<{type?: string; name?: string; arguments?: string}>};
         if (!response.ok) throw new Error(generationError(response.status, result.error?.code));
-        if (reference) {
-          const text = result.output?.flatMap(item => item.content || []).filter(item => item.type === 'output_text').map(item => item.text || '').join('');
-          let plan: unknown;
-          try {plan = JSON.parse(text || '');} catch {throw new Error('The pixel artist did not finish the Sprite Forge document. Retry idle generation.');}
-          const forge = createPixelMaster(reference, plan);
-          send({type: 'result', stage, image: renderPixelSheet(forge, 'idle'), forge});
-          return;
+        const expected = stage === 'fullbody' ? 'set_frame' : 'author_animation';
+        const call = result.output?.find(item => item.type === 'function_call' && item.name === expected);
+        let commands: unknown;
+        try {if (!call?.arguments || call.arguments.length > 800_000) throw new Error(); commands = JSON.parse(call.arguments);}
+        catch {throw new Error('Sprite Forge did not finish the pixel drawing commands. Retry this step.');}
+        if (stage === 'fullbody') {
+          const authored = parsePixelSource(commands);
+          send({type: 'result', stage, image: renderPixelReference(authored), source: authored});
+        } else {
+          const master = source || {palette: suppliedForge!.palette, rows: suppliedForge!.animations.find(a => a.name === 'idle-down')!.frames[0].rows};
+          const forge = authorAnimation(master, commands, stage, suppliedForge);
+          send({type: 'result', stage, image: renderPixelSheet(forge, stage), forge});
         }
-        const image = result.output?.find(item => item.type === 'image_generation_call' && item.result)?.result;
-        if (!image || image.length > 23_000_000 || !image.startsWith('iVBOR')) throw new Error('The image service did not return a complete PNG. Please retry this step.');
-        // The review image is already game-sized indexed art, not a smooth illustration.
-        send({type: 'result', stage, image: renderPixelReference(pixelReference(Buffer.from(image, 'base64')))});
       } catch (error) {
         await db.prepare('UPDATE sprite_image_limits SET attempts=MAX(0,attempts-1) WHERE identity=? AND day=? AND stage=?').bind(identity, day, stage).run().catch(() => {});
         send({type: 'error', error: abort.signal.aborted ? 'This image took too long. Your completed steps are saved; retry this step.' : error instanceof Error ? error.message : 'Could not generate the image. Please retry.'});

@@ -1,18 +1,21 @@
-# NFT artwork → full body → Sprite Forge fighter
+# Chibi creator through Sprite Forge
 
-1. Upload PNG, JPEG or WebP artwork and choose Normal or Chibi proportions.
-2. Astra uses the image tool only to make a complete full-body reference. Review or redraw it before animation.
-3. The backend samples that approved PNG onto a 64×64 grid and reduces it to at most 32 colours. This preserves the front-view artwork as actual indexed pixels.
-4. Astra authors the other three facing views and limb regions as structured pixel rows. This request has no image-generation tool.
-5. The Sprite Forge engine builds idle, walk and punch animations by moving the authored head and limb pixels. Walking and punch stages are local rendering operations in the Worker, with no OpenAI call.
-6. Sprite Forge exports four frames per direction (40 total). The PNGs enlarge each logical pixel to an exact 3×3 block: 192×192 frames, no smoothing or antialiasing.
+The creator supports Chibi only. The API rejects Normal requests, and the UI offers no Normal option. Historical saved fighters remain playable; regeneration requires a fresh Chibi full body.
 
-`app/sprite-forge/format.js` reuses the user's MIT-licensed local MCP implementation from `Downloads/sprite-mcp/src/format.js`. Only its PNG import uses pngjs's bundled browser implementation for Worker compatibility. This is the same palette, pixel-row, drawing and export format as the local Sprite Forge editor; the production server does not connect to a user's local stdio process. No local filesystem or MCP endpoint is exposed publicly.
+Every generation stage is authored through Sprite Forge commands:
 
-The adapter in `engine.ts` adds bounded colour quantization, pixel-part animation and 3× export. `planner.ts` requests three original directional pixel views and a rig. Characters are not recoloured presets. Facing views, limb animation, and identity still need visual review; individual body-part motion can need artist refinement. The downloadable `.sprite.json` project opens in the existing editor/MCP for that work. Changing the full-body style redraws the reference; rebuilding idle regenerates all dependent movements. Old saved animation sheets remain usable and can be rebuilt through Redraw idle.
+1. The uploaded artwork is shown to Astra as a visual reference. Astra submits the `set_frame` function command with an original 12–32-colour palette and 64×64 indexed pixel rows for a complete Chibi character.
+2. The backend executes that command using the user's Sprite Forge engine and renders a 192×192 review image. No image-generation tool, raster sampling, quantization or illustration filter is used.
+3. After approval, Astra authors the three other facing views and four idle poses per direction. `author_animation` is a bounded command batch: create animations, duplicate base frames, apply pixel `draw` patches and export through Sprite Forge.
+4. Walk and punch use the same command path. Each pose is explicitly authored as pixel edits against its facing base. There is no hard-coded body-part rig or canned limb transform.
+5. Forty frames are exported: idle and walk in four directions, punch left/right, four frames each. Every logical pixel becomes an exact 3×3 block at 192×192, with binary transparency and no smoothing.
 
-Full-body requests and pixel-view planning use the existing production `OPENAI_API_KEY` secret. D1 permits 50 successful/active requests per IP, per stage, per UTC day during testing. Provider failures refund the attempt. Origin, image, stage, approval and Sprite Forge input checks occur before provider spending. The approval flag follows the UI flow and does not prove NFT ownership.
+`app/sprite-forge/format.js` reuses the user's MIT-licensed local MCP implementation from `Downloads/sprite-mcp/src/format.js`; its PNG import uses pngjs's browser bundle for Worker compatibility. The production Worker executes the shared Sprite Forge engine and format. It does not expose or connect to the user's local stdio process. The downloadable `.sprite.json` document is editable with the existing Sprite Forge editor/MCP.
 
-Drafts and equipped fighters stay in IndexedDB in the current browser. Completed stages survive refresh and interrupted requests. Downloads include the full-body reference, combined PNG sheet, and editable Sprite Forge JSON. NFT ownership, wallet gating, minting, and server storage of character collections are separate features.
+`planner.ts` defines the Sprite Forge function commands for Astra. `engine.ts` validates and executes authored palette rows and pixel patches. Views and frames must be complete, remain inside the 64×64 canvas and palette, and include at least three distinct poses per movement. Character likeness, facing accuracy and motion still require visual review; these are AI-authored pixel sprites and may need an artist's edits.
 
-Validation: `node tests/sprite-creator.test.mjs` runs the Worker against a mocked provider and real D1 test database. It checks original reference bytes, Normal/Chibi styles, no image tool in the pixel planner, zero provider calls for walk/punch, 40-frame layout, exact 3× pixels, binary alpha, rate limits/refunds and streaming boundaries. Type checking and production build run before publication.
+The existing production `OPENAI_API_KEY` secret is used for Astra function calling. No request includes an image-generation tool. D1 allows 50 successful/active requests per IP, per stage, per UTC day during testing. Invalid inputs are rejected before provider spending, and failed generation refunds the attempt. The approval gate follows the UI flow; it does not verify NFT ownership.
+
+Drafts store the original pixel source, Sprite Forge document and completed PNG sheets in IndexedDB. Downloads include the reviewed full body, combined sprite sheet and Sprite Forge project. Old generated designs require a fresh Chibi full body; saved fighters are preserved.
+
+Validation: `node tests/sprite-creator.test.mjs` tests the Worker with a mocked function-calling provider and real D1 database: Chibi-only rejection, command execution at every stage, absence of image generation, authored poses, exact 3× export, binary alpha, pixel validation, streaming, draft restoration and rate limits/refunds. Type checking and production build run before publication.
