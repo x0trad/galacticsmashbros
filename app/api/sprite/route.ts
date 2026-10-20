@@ -8,10 +8,11 @@ import {type GenerationStage} from '../../sprite-format';
 const json = (body: unknown, status = 200) => Response.json(body, {status, headers: {'Cache-Control': 'no-store'}});
 const dailyStageLimit = 50;
 const stages = new Set(['fullbody', 'idle', 'walk', 'punch']);
-const runtime = () => env as unknown as {OPENAI_API_KEY?: string; DB?: D1Database};
-export function GET() {return json({available: Boolean(runtime().OPENAI_API_KEY), pipeline: 'chibi-sprite-forge-commands', sprite_engine: 'sprite-forge-gd-v3', styles: ['chibi']});}
+const runtime = () => env as unknown as {OPENAI_API_KEY?: string; DB?: D1Database; SPRITE_CREATOR_ENABLED?:string};
+export function GET() {return json({available: runtime().SPRITE_CREATOR_ENABLED==='true' && Boolean(runtime().OPENAI_API_KEY), pipeline: 'chibi-sprite-forge-commands', sprite_engine: 'sprite-forge-gd-v3', styles: ['chibi']});}
 
 export async function POST(request: Request) {
+  if(runtime().SPRITE_CREATOR_ENABLED!=='true') return json({error:'Character generation is coming in the next release.'},503);
   if (request.headers.get('origin') !== new URL(request.url).origin) return json({error: 'Use the creator from the game site.'}, 403);
   const {OPENAI_API_KEY: key, DB: db} = runtime();
   if (!key || !db) return json({error: 'The image creator is not configured yet.'}, 503);

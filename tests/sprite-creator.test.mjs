@@ -11,7 +11,7 @@ function plan(kind){const dirs=kind==='punch'?['left','right']:['down','left','r
 const bundle=await build({stdin:{contents:"import {GET,POST} from './app/api/sprite/route.ts'; export default {fetch(r){return r.method==='GET'?GET():POST(r)}}",resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'browser',external:['cloudflare:workers','node:buffer']});
 let calls=0,fail=false,requestBody,broken=false;
 const requests=[];
-const mf=new Miniflare({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:'2026-01-01',compatibilityFlags:['nodejs_compat'],bindings:{OPENAI_API_KEY:'test-secret'},d1Databases:['DB'],outboundService:async request=>{
+const mf=new Miniflare({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:'2026-01-01',compatibilityFlags:['nodejs_compat'],bindings:{SPRITE_CREATOR_ENABLED:'true',OPENAI_API_KEY:'test-secret'},d1Databases:['DB'],outboundService:async request=>{
  calls++;requestBody=await request.json();requests.push(requestBody);
  if(fail)return Response.json({error:{code:'insufficient_quota'}},{status:429});
  const name=requestBody.tools[0].name,kind=requestBody.input[0].content[0].text.match(/actual authored (idle|walk|punch)/)?.[1];

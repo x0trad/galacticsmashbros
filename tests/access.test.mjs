@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+const compile=p=>ts.transpileModule(readFileSync(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const url=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
+const {Arena,FREE_WAVES,characters}=await import(url(compile('app/arena.ts')));
+assert.equal(FREE_WAVES,2);assert.deepEqual(characters,['green','grey','purple']);
+const g=new Arena('green');g.nextWave();assert.equal(g.wave,1);g.enemies=[];g.nextWave();assert.equal(g.wave,2);g.enemies=[];const hp=g.player.hp,score=g.score;g.nextWave();assert.equal(g.wave,2);assert(g.accessLocked);assert.equal(g.enemies.length,0);g.update(1,new Set(['d',' ']));assert.equal(g.player.hp,hp);assert.equal(g.score,score);assert.equal(g.wave,2);
+const placeholder=readFileSync('app/access-pass.tsx','utf8');assert(placeholder.includes('disabled'));assert(!placeholder.includes('fetch('));assert(!placeholder.includes('eth_requestAccounts'));
+const ui=readFileSync('app/game.tsx','utf8');assert(!ui.includes('customFighter&&<label'));assert(!ui.includes('getSavedFighter().then'));assert(!ui.includes('onIdentity='));
+console.log('PASS: only original Galactic Dog palettes, free Waves 1–2, paused Wave 3 checkpoint with no spawn or progress, and disabled wallet placeholder without network requests.');

@@ -358,3 +358,13 @@ html.game-active,html.game-active body{overflow:hidden;overscroll-behavior:none}
 .creator-dialog button:focus-visible,.creator-dialog a:focus-visible{outline:3px solid #238173;outline-offset:3px}
 @media(max-width:650px){.creator-steps{gap:5px}.creator-steps li{flex-direction:column;gap:4px;padding:8px 4px;font-size:12px;text-align:center}.creator-body{max-height:360px}.creator-animation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.creator-progress{flex-wrap:wrap}.creator-progress .creator-secondary{min-height:38px;padding:4px 12px}.creator-animation-heading h3{font-size:25px}}
 @media(prefers-reduced-motion:reduce){.creator-spinner{animation:none}}
+
+/* Release-one wallet and holder checkpoint. */
+.access-pass{width:100%;max-width:36rem;margin:1.25rem auto;text-align:left}
+.access-pass>.secondary{width:100%;margin:0}
+.access-pass-body{padding:1.25rem;border:2px solid #aac8b9;border-radius:18px;background:#fffdf0;color:#23494a;margin-top:.75rem;overflow-wrap:anywhere}
+.access-pass-body h3{font-size:1.2rem}.access-pass-body p{font-size:1rem;line-height:1.5;margin:.75rem 0}.access-pass-body small{display:block;font-size:.85rem;line-height:1.5}
+.access-pass-body button{width:100%;margin:.5rem 0;min-height:48px}
+.holder-overlay{overflow-y:auto;max-height:100%;justify-content:flex-start;padding:1.5rem}.holder-overlay h2{font-size:clamp(1.5rem,5vw,2.5rem)}
+.wallet-coming-soon{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.6rem;width:100%;min-height:56px;padding:1rem;border:2px solid #aac8b9;border-radius:14px;background:#dce8dc;color:#47655f;font:800 1rem 'Baloo 2',Arial,sans-serif;cursor:not-allowed;opacity:1}
+.wallet-coming-soon span{font-size:.75rem;border-radius:6px;background:#c6d5c6;padding:.2rem .45rem;letter-spacing:.04em}.access-pass .wallet-note{color:#45605c;font-size:.95rem;line-height:1.5;text-align:center;margin:.6rem 0}.holder-overlay .access-pass .wallet-note{color:#c9d9d4}

@@ -3,7 +3,7 @@ import ts from 'typescript';
 import {readFileSync} from 'node:fs';
 const js=ts.transpileModule(readFileSync('app/arena.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
 const {Arena,shooterCount}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
-for(let wave=1;wave<=40;wave++){const g=new Arena('green');g.wave=wave-1;g.nextWave();const shooters=g.enemies.filter(e=>e.shooter);assert.equal(shooters.length,shooterCount(wave,g.enemies.length));assert(shooters.length<=4);assert(shooters.length<=g.enemies.length/4);if(wave===1)assert.equal(shooters.length,0)}
+for(let wave=1;wave<=40;wave++){const g=new Arena('green');g.wave=wave-1;g.allowedWave=40;g.nextWave();const shooters=g.enemies.filter(e=>e.shooter);assert.equal(shooters.length,shooterCount(wave,g.enemies.length));assert(shooters.length<=4);assert(shooters.length<=g.enemies.length/4);if(wave===1)assert.equal(shooters.length,0)}
 const g=new Arena('green',()=>{},['super','shield','haste']);g.between=100;g.wave=2;
 const enemy=(dx,hp=4)=>({...g.player,x:g.player.x+dx,hp,max:hp,color:'purple',spawn:0});
 g.enemies=Array.from({length:10},()=>enemy(60));g.player.dir='right';g.punch();assert.equal(g.superCooldown,0);g.enemies=[enemy(100),enemy(160)];assert(g.superSmash());assert.equal(g.enemies[0].hp,3);assert.equal(g.enemies[1].hp,4);assert.equal(g.superCooldown,22);g.cooldown=0;g.punch();assert.equal(g.superCooldown,22);assert(!g.superSmash());

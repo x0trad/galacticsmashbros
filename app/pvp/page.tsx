@@ -65,7 +65,7 @@ export default function PvP() {
         if (v.code && v.token && [0, 1].includes(v.slot)) setSession(v);
       }
     } catch {}
-    loadSprites()
+    loadSprites(roster)
       .then((v) => {
         images.current = v;
         setAssets(true);

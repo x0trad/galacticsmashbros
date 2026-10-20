@@ -8,6 +8,7 @@ const hex=(b:ArrayBuffer)=>Array.from(new Uint8Array(b),n=>n.toString(16).padSta
 function dataURL(bytes:Uint8Array){let binary='';for(let i=0;i<bytes.length;i+=32768)binary+=String.fromCharCode(...bytes.subarray(i,i+32768));return 'data:image/png;base64,'+btoa(binary);}
 export async function POST(request:Request){
  const json=(error:string,status:number)=>Response.json({error},{status,headers:{'Cache-Control':'no-store'}});
+ if((env as unknown as {SPRITE_CREATOR_ENABLED?:string}).SPRITE_CREATOR_ENABLED!=='true')return json('Character generation is coming in the next release.',503);
  if(request.headers.get('origin')!==new URL(request.url).origin)return json('Use the game origin.',403);
  if(hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(request.headers.get('x-study-access')||'')))!==studyAccessHash)return json('Private art study.',403);
  const {OPENAI_API_KEY:key,DB:db}=env as unknown as {OPENAI_API_KEY?:string;DB?:D1Database};
