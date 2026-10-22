@@ -16,7 +16,9 @@
     "format": "oxfmt",
     "db:generate": "drizzle-kit generate",
     "sprite:walk": "python3 scripts/animate_sprite.py",
-    "test:sprite-rig": "python3 -m unittest discover -s tests -p test_sprite_rig.py"
+    "test:sprite-rig": "python3 -m unittest discover -s tests -p test_sprite_rig.py",
+    "build:cpanel": "node scripts/package-cpanel.mjs",
+    "preview:cpanel": "vite preview --config vite.cpanel.config.ts --host localhost --port 4173 --strictPort"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

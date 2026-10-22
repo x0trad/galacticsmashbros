@@ -38,3 +38,7 @@ next-env.d.ts
 .dev.vars*
 /outputs/
 /work/
+
+# Standalone cPanel build and upload archives
+/dist-cpanel/
+/releases/
