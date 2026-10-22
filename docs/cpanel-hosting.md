@@ -13,7 +13,7 @@ npm run preview:cpanel
 
 Upload `releases/galactic-smash-bros-cpanel.zip` and extract its contents directly into the game's document root. `index.html`, `.htaccess`, `assets/`, `audio/`, `branding/`, `fonts/`, `power-cards/` and `sprites/` should be siblings. There is no extra enclosing folder in the archive. No Node.js process or database is required.
 
-Target chosen by the user: `smash.dehumain.xyz`, separate document root `/home/dehuruih/smash.dehumain.xyz`. Do not replace the main site's `public_html`.
+Current target chosen by the user: `galacticsmashbros.xyz`, separate document root `/home/dehuruih/galacticsmashbros.xyz`. This replaces the earlier `smash.dehumain.xyz` staging subdomain. Do not replace the main site's `public_html`.
 
 The build uses relative URLs for script, style, image, audio and font assets, so it also supports installation into a subdirectory. The cPanel Vite transform affects only this standalone build, not the original server build. All three original Galactic Dog colours and animation files are copied from `public`; unreleased characters are excluded from the ZIP.
 
@@ -29,4 +29,4 @@ Use HTTPS after the subdomain certificate is issued. DNS and TLS provisioning ar
 
 ## Current deployment state
 
-The subdomain and isolated document root were created successfully. The public HTTPS address resolves and serves the empty directory, confirming DNS/TLS readiness. The game upload has not completed; cPanel authentication expired during upload attempts. Sign in again, upload the prepared ZIP into this document root, extract it there, and verify the game at the public address. Do not describe the game as deployed until that verification succeeds.
+The new domain `galacticsmashbros.xyz` is already configured in cPanel and maps to `/home/dehuruih/galacticsmashbros.xyz`. The directory currently contains only `cgi-bin`. HTTPS is working on the new domain and currently serves an empty directory listing. The game ZIP is validated and ready for upload; the native file-picker action needs the user to select the ZIP. Publication is not complete until extraction and a public gameplay check succeed. The older staging subdomain remains separate.
