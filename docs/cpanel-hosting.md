@@ -29,4 +29,8 @@ Use HTTPS after the subdomain certificate is issued. DNS and TLS provisioning ar
 
 ## Current deployment state
 
-The new domain `galacticsmashbros.xyz` is already configured in cPanel and maps to `/home/dehuruih/galacticsmashbros.xyz`. The directory currently contains only `cgi-bin`. HTTPS is working on the new domain and currently serves an empty directory listing. The game ZIP is validated and ready for upload; the native file-picker action needs the user to select the ZIP. Publication is not complete until extraction and a public gameplay check succeed. The older staging subdomain remains separate.
+Published successfully at https://galacticsmashbros.xyz/ on 22 October 2026. The user uploaded the verified 8.64 MB ZIP to `/home/dehuruih/galacticsmashbros.xyz`; extraction succeeded, including `index.html`, `.htaccess`, the client bundles and all asset directories.
+
+Public browser verification passed for HTTPS landing-page rendering, Green/Grey/Purple character selection, enabled arena entry after sprite loading, arena startup, restart and Barricade activation with its active timer/cooldown. The landing page was left open for the user. This is the standalone Wave preview: wallet connection remains disabled and Wave 3 is the coming-soon checkpoint. Physical iPhone/Android acceptance testing remains separate from this browser smoke test.
+
+The older `smash.dehumain.xyz` staging subdomain is separate and is not the published game address.
